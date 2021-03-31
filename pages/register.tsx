@@ -5,7 +5,7 @@ import TextField from "@material-ui/core/TextField";
 import { useFormik } from "formik";
 import styled from "styled-components";
 import { CircularProgress } from "@material-ui/core";
-import { useMutation } from "urql";
+import { useRegisterMutation } from "../src/generated/graphql";
 
 const StyledWrapper = styled.div`
   position: relative;
@@ -27,32 +27,21 @@ const validationSchema = yup.object({
     .required("Password is required"),
 });
 
-const REGISTER_MUTATION = `
-mutation Register($username: String!, $password: String!) {
-  register (options: {username: $username, password: $password}) {
-    user {
-      _id
-      createdAt
-      updatedAt
-      username
-    }
-    errors {
-      field
-      message
-    }
-  }
-}`;
-
 const Register: React.FC = () => {
-  const [, register] = useMutation(REGISTER_MUTATION);
+  const [, register] = useRegisterMutation();
   const formik = useFormik({
     initialValues: {
       username: "",
       password: "",
     },
     validationSchema: validationSchema,
-    onSubmit: (values) => {
-      return register(values);
+    onSubmit: async (values, { setErrors }) => {
+      const response = await register(values);
+      if (response.data?.register.errors) {
+        setErrors({
+          username: "Hey I'm an error",
+        });
+      }
     },
   });
 
