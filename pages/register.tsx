@@ -6,6 +6,8 @@ import { useFormik } from "formik";
 import styled from "styled-components";
 import { CircularProgress } from "@material-ui/core";
 import { useRegisterMutation } from "../src/generated/graphql";
+import { toErrorMap } from "../utils/utils";
+import { useRouter } from "next/router";
 
 const StyledWrapper = styled.div`
   position: relative;
@@ -20,15 +22,13 @@ const StyledSubmitProgress = styled(CircularProgress)`
 `;
 
 const validationSchema = yup.object({
-  username: yup.string().required("Username is required"),
-  password: yup
-    .string()
-    .min(8, "Password should be of minimum 8 characters length")
-    .required("Password is required"),
+  username: yup.string(),
+  password: yup.string(),
 });
 
 const Register: React.FC = () => {
   const [, register] = useRegisterMutation();
+  const router = useRouter();
   const formik = useFormik({
     initialValues: {
       username: "",
@@ -37,10 +37,11 @@ const Register: React.FC = () => {
     validationSchema: validationSchema,
     onSubmit: async (values, { setErrors }) => {
       const response = await register(values);
+      console.log(response);
       if (response.data?.register.errors) {
-        setErrors({
-          username: "Hey I'm an error",
-        });
+        setErrors(toErrorMap(response.data.register.errors));
+      } else if (response.data?.register.user) {
+        router.push("/");
       }
     },
   });
