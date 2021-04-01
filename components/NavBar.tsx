@@ -6,7 +6,7 @@ import {
   Typography,
 } from "@material-ui/core";
 import Link from "next/link";
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import { useMeQuery } from "../src/generated/graphql";
 

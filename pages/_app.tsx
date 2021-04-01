@@ -5,13 +5,74 @@ import Head from "next/head";
 import { ThemeProvider } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import theme from "../src/theme";
-import { Provider, createClient } from "urql";
+import { Provider, createClient, dedupExchange, fetchExchange } from "urql";
+import { Cache, cacheExchange, QueryInput } from "@urql/exchange-graphcache";
+import {
+  LoginMutation,
+  MeDocument,
+  MeQuery,
+  RegisterMutation,
+} from "../src/generated/graphql";
+
+const betterUpdateQuery = <Result, Query>(
+  cache: Cache,
+  queryInput: QueryInput,
+  result: any,
+  fn: (r: Result, q: Query) => Query
+) => {
+  return cache.updateQuery(
+    queryInput,
+    (data) => fn(result, data as any) as any
+  );
+};
 
 const client = createClient({
   url: "http://localhost:4000/graphql",
   fetchOptions: {
     credentials: "include",
   },
+  exchanges: [
+    dedupExchange,
+    cacheExchange({
+      updates: {
+        Mutation: {
+          login: (result, _args, cache, _info) => {
+            betterUpdateQuery<LoginMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              result,
+              (r, q) => {
+                if (r.login.errors) {
+                  return q;
+                } else {
+                  return {
+                    me: r.login.user,
+                  };
+                }
+              }
+            );
+          },
+          register: (result, _args, cache, _info) => {
+            betterUpdateQuery<RegisterMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              result,
+              (r, q) => {
+                if (r.register.errors) {
+                  return q;
+                } else {
+                  return {
+                    me: r.register.user,
+                  };
+                }
+              }
+            );
+          },
+        },
+      },
+    }),
+    fetchExchange,
+  ],
 });
 
 export default function MyApp(props: {

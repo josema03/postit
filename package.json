@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "latest",
+    "@urql/exchange-graphcache": "^4.0.0",
     "clsx": "latest",
     "formik": "^2.2.6",
     "graphql": "^15.5.0",
