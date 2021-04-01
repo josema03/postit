@@ -8,7 +8,7 @@ import {
 import Link from "next/link";
 import React from "react";
 import styled from "styled-components";
-import { useMeQuery } from "../src/generated/graphql";
+import { useLogoutMutation, useMeQuery } from "../src/generated/graphql";
 
 const StyledTypography = styled(Typography).attrs(() => ({
   variant: "button",
@@ -16,7 +16,20 @@ const StyledTypography = styled(Typography).attrs(() => ({
   color: white;
 `;
 
+const StyledWrapper = styled.div`
+  position: relative;
+`;
+
+const StyledLogoutLoading = styled(CircularProgress)`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -12px;
+  margin-left: -12px;
+`;
+
 const NavBar: React.FunctionComponent = (): React.ReactElement => {
+  const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
   const [{ data, fetching }] = useMeQuery();
 
   let userInterface = null;
@@ -45,9 +58,12 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
         <Button>
           <StyledTypography>{data.me.username}</StyledTypography>
         </Button>
-        <Button>
-          <StyledTypography>Logout</StyledTypography>
-        </Button>
+        <StyledWrapper>
+          <Button onClick={() => logout()} disabled={logoutFetching}>
+            <StyledTypography>Logout</StyledTypography>
+          </Button>
+          {logoutFetching && <StyledLogoutLoading />}
+        </StyledWrapper>
       </>
     );
   }

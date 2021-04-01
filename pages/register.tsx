@@ -37,7 +37,6 @@ const Register: React.FC = () => {
     validationSchema: validationSchema,
     onSubmit: async (values, { setErrors }) => {
       const response = await register(values);
-      console.log(response);
       if (response.data?.register.errors) {
         setErrors(toErrorMap(response.data.register.errors));
       } else if (response.data?.register.user) {
