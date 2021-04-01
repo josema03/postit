@@ -8,6 +8,8 @@ import { CircularProgress } from "@material-ui/core";
 import { useRegisterMutation } from "../src/generated/graphql";
 import { toErrorMap } from "../utils/utils";
 import { useRouter } from "next/router";
+import { createUrqlClient } from "../utils/createUrqlClient";
+import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 
 const StyledWrapper = styled.div`
   position: relative;
@@ -77,7 +79,7 @@ const Register: React.FC = () => {
             type="submit"
             disabled={formik.isSubmitting}
           >
-            Submit
+            Registern
           </Button>
           {formik.isSubmitting && <StyledSubmitProgress size={24} />}
         </StyledWrapper>
@@ -86,4 +88,6 @@ const Register: React.FC = () => {
   );
 };
 
-export default Register;
+export default withUrqlClient(createUrqlClient as NextUrqlClientConfig, {
+  ssr: false,
+})(Register);

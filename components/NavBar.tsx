@@ -9,6 +9,7 @@ import Link from "next/link";
 import React from "react";
 import styled from "styled-components";
 import { useLogoutMutation, useMeQuery } from "../src/generated/graphql";
+import { isServerSide } from "../utils/isServerSide";
 
 const StyledTypography = styled(Typography).attrs(() => ({
   variant: "button",
@@ -30,14 +31,17 @@ const StyledLogoutLoading = styled(CircularProgress)`
 
 const NavBar: React.FunctionComponent = (): React.ReactElement => {
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
-  const [{ data, fetching }] = useMeQuery();
+  const [{ data, fetching }] = useMeQuery({ pause: isServerSide() });
 
   let userInterface = null;
-  console.log(data, fetching);
 
   if (fetching) {
-    userInterface = <CircularProgress />;
-  } else if (!data.me) {
+    userInterface = (
+      <>
+        <CircularProgress />
+      </>
+    );
+  } else if (!data?.me) {
     userInterface = (
       <>
         <Link href="/login">

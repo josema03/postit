@@ -8,6 +8,8 @@ import { CircularProgress } from "@material-ui/core";
 import { useLoginMutation } from "../src/generated/graphql";
 import { toErrorMap } from "../utils/utils";
 import { useRouter } from "next/router";
+import { createUrqlClient } from "../utils/createUrqlClient";
+import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 
 const StyledWrapper = styled.div`
   position: relative;
@@ -86,4 +88,6 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default withUrqlClient(createUrqlClient as NextUrqlClientConfig, {
+  ssr: false,
+})(Login);
