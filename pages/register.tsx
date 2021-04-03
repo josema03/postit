@@ -25,6 +25,7 @@ const StyledSubmitProgress = styled(CircularProgress)`
 
 const validationSchema = yup.object({
   username: yup.string(),
+  email: yup.string(),
   password: yup.string(),
 });
 
@@ -33,6 +34,7 @@ const Register: React.FC = () => {
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
+      email: "",
       username: "",
       password: "",
     },
@@ -50,6 +52,16 @@ const Register: React.FC = () => {
   return (
     <div>
       <form onSubmit={formik.handleSubmit}>
+        <TextField
+          fullWidth
+          id="email"
+          name="email"
+          label="Email"
+          value={formik.values.email}
+          onChange={formik.handleChange}
+          error={formik.touched.email && Boolean(formik.errors.email)}
+          helperText={formik.touched.email && formik.errors.email}
+        />
         <TextField
           fullWidth
           id="username"
@@ -79,7 +91,7 @@ const Register: React.FC = () => {
             type="submit"
             disabled={formik.isSubmitting}
           >
-            Registern
+            Register
           </Button>
           {formik.isSubmitting && <StyledSubmitProgress size={24} />}
         </StyledWrapper>
