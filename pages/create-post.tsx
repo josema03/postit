@@ -1,4 +1,6 @@
-import { Button, CircularProgress, TextField } from "@material-ui/core";
+import { CircularProgress } from "@material-ui/core";
+import Button from "@material-ui/core/Button";
+import TextField from "@material-ui/core/TextField";
 import { useFormik } from "formik";
 import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
@@ -6,8 +8,9 @@ import React from "react";
 import styled from "styled-components";
 import * as yup from "yup";
 import Layout from "../components/Layout";
-import { useForgotPasswordMutation } from "../src/generated/graphql";
+import { useCreatePostMutation } from "../src/generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
+import { useIsAuth } from "../utils/useIsAuth";
 
 const StyledWrapper = styled.div`
   position: relative;
@@ -31,43 +34,50 @@ const StyledSubmitProgress = styled(CircularProgress)`
   margin-left: -12px;
 `;
 
-const StyledForm = styled.form`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-`;
-
 const validationSchema = yup.object({
-  email: yup.string(),
+  username: yup.string(),
+  text: yup.string(),
 });
 
-const ForgotPassword: React.FC = () => {
-  const [, forgotPassword] = useForgotPasswordMutation();
+const CreatePost: React.FC = () => {
   const router = useRouter();
+  const [, createPost] = useCreatePostMutation();
   const formik = useFormik({
     initialValues: {
-      email: "",
+      title: "",
+      text: "",
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      const response = await forgotPassword(values);
-      if (response.data?.forgotPassword) {
-        router.push("/");
-      }
+      await createPost({ postInput: values });
+      router.push("/");
     },
   });
 
+  useIsAuth();
+
   return (
     <Layout>
-      <StyledForm onSubmit={formik.handleSubmit}>
+      <form onSubmit={formik.handleSubmit}>
         <StyledTextField
-          id="email"
-          name="email"
-          label="Email"
-          value={formik.values.email}
+          id="title"
+          name="title"
+          label="Title"
+          value={formik.values.title}
           onChange={formik.handleChange}
-          error={formik.touched.email && Boolean(formik.errors.email)}
-          helperText={formik.touched.email && formik.errors.email}
+          error={formik.touched.title && Boolean(formik.errors.title)}
+          helperText={formik.touched.title && formik.errors.title}
+        />
+        <StyledTextField
+          id="text"
+          name="text"
+          label="Text"
+          multiline
+          rows={10}
+          value={formik.values.text}
+          onChange={formik.handleChange}
+          error={formik.touched.text && Boolean(formik.errors.text)}
+          helperText={formik.touched.text && formik.errors.text}
         />
         <StyledWrapper>
           <Button
@@ -77,15 +87,15 @@ const ForgotPassword: React.FC = () => {
             type="submit"
             disabled={formik.isSubmitting}
           >
-            Send Email
+            Create Post
           </Button>
           {formik.isSubmitting && <StyledSubmitProgress size={24} />}
         </StyledWrapper>
-      </StyledForm>
+      </form>
     </Layout>
   );
 };
 
 export default withUrqlClient(createUrqlClient as NextUrqlClientConfig)(
-  ForgotPassword
+  CreatePost
 );

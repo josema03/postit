@@ -4,13 +4,14 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import { useFormik } from "formik";
 import styled from "styled-components";
-import { CircularProgress, Container } from "@material-ui/core";
+import { CircularProgress } from "@material-ui/core";
 import { useLoginMutation } from "../src/generated/graphql";
 import { toErrorMap } from "../utils/utils";
 import { useRouter } from "next/router";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import Link from "next/link";
+import Layout from "../components/Layout";
 
 const StyledWrapper = styled.div`
   position: relative;
@@ -39,14 +40,10 @@ const StyledSubmitProgress = styled(CircularProgress)`
   margin-left: -12px;
 `;
 
-const StyledContainer = styled(Container).attrs(() => ({
-  maxWidth: "sm",
-}))`
+const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 12px;
+  width: 100%;
 `;
 
 const validationSchema = yup.object({
@@ -68,14 +65,16 @@ const Login: React.FC = () => {
       if (response.data?.login.errors) {
         setErrors(toErrorMap(response.data.login.errors));
       } else if (response.data?.login.user) {
-        router.push("/");
+        router.push(
+          typeof router.query.next === "string" ? router.query.next : "/"
+        );
       }
     },
   });
 
   return (
-    <StyledContainer>
-      <form onSubmit={formik.handleSubmit}>
+    <Layout>
+      <StyledForm onSubmit={formik.handleSubmit}>
         <StyledTextField
           id="usernameOrEmail"
           name="usernameOrEmail"
@@ -115,8 +114,8 @@ const Login: React.FC = () => {
           </Button>
           {formik.isSubmitting && <StyledSubmitProgress size={24} />}
         </StyledWrapper>
-      </form>
-    </StyledContainer>
+      </StyledForm>
+    </Layout>
   );
 };
 

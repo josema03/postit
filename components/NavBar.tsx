@@ -1,5 +1,6 @@
 import {
   AppBar,
+  Box,
   Button,
   CircularProgress,
   Toolbar,
@@ -21,7 +22,9 @@ const StyledWrapper = styled.div`
   position: relative;
 `;
 
-const StyledLogoutLoading = styled(CircularProgress)`
+const StyledLogoutLoading = styled(CircularProgress).attrs(() => ({
+  color: "secondary",
+}))`
   position: absolute;
   top: 50%;
   left: 50%;
@@ -29,19 +32,22 @@ const StyledLogoutLoading = styled(CircularProgress)`
   margin-left: -12px;
 `;
 
+const StyledToolbar = styled(Toolbar)`
+  display: flex;
+  justify-content: space-between;
+`;
+
 const NavBar: React.FunctionComponent = (): React.ReactElement => {
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
   const [{ data, fetching }] = useMeQuery({ pause: isServerSide() });
 
-  let userInterface = null;
+  let userInterface = (
+    <>
+      <CircularProgress color="secondary" />
+    </>
+  );
 
-  if (fetching) {
-    userInterface = (
-      <>
-        <CircularProgress />
-      </>
-    );
-  } else if (!data?.me) {
+  if (!isServerSide() && !fetching && !data?.me) {
     userInterface = (
       <>
         <Link href="/login">
@@ -56,7 +62,7 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
         </Link>
       </>
     );
-  } else if (data.me.username) {
+  } else if (!isServerSide() && !fetching && data.me.username) {
     userInterface = (
       <>
         <Button>
@@ -74,7 +80,16 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
 
   return (
     <AppBar position="static">
-      <Toolbar>{userInterface}</Toolbar>
+      <StyledToolbar>
+        <Box display="flex">
+          <Link href="/">
+            <Button>
+              <StyledTypography>Home</StyledTypography>
+            </Button>
+          </Link>
+        </Box>
+        <Box display="flex">{userInterface}</Box>
+      </StyledToolbar>
     </AppBar>
   );
 };

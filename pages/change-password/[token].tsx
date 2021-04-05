@@ -1,18 +1,20 @@
 /* eslint-disable react/prop-types */
-import { CircularProgress, TextField, Button } from "@material-ui/core";
-import * as yup from "yup";
+import { Button, CircularProgress, TextField } from "@material-ui/core";
 import { useFormik } from "formik";
-import { NextPage } from "next";
+import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
+import * as yup from "yup";
+import Layout from "../../components/Layout";
 import { useChangePasswordMutation } from "../../src/generated/graphql";
-import { toErrorMap } from "../../utils/utils";
-import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../../utils/createUrqlClient";
+import { toErrorMap } from "../../utils/utils";
 
 const StyledWrapper = styled.div`
   position: relative;
+  margin: auto;
+  width: 50%;
 `;
 
 const StyledSubmitProgress = styled(CircularProgress)`
@@ -23,11 +25,25 @@ const StyledSubmitProgress = styled(CircularProgress)`
   margin-left: -12px;
 `;
 
+const StyledForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+`;
+
+const StyledTextField = styled(TextField).attrs(() => ({
+  fullWidth: true,
+  variant: "outlined",
+  size: "small",
+}))`
+  margin-bottom: 12px;
+`;
+
 const validationSchema = yup.object({
   newPassword: yup.string(),
 });
 
-const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
+const ChangePassword: React.FC = () => {
   const [, changePassword] = useChangePasswordMutation();
   const router = useRouter();
   const formik = useFormik({
@@ -38,9 +54,8 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
     onSubmit: async (values, { setErrors }) => {
       const response = await changePassword({
         newPassword: values.newPassword,
-        token,
+        token: typeof router.query.token === "string" ? router.query.token : "",
       });
-      console.log(response);
       if (response.data?.changePassword.errors) {
         const errors = toErrorMap(response.data.changePassword.errors);
         if (!errors.token) {
@@ -55,10 +70,9 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
   });
 
   return (
-    <div>
-      <form onSubmit={formik.handleSubmit}>
-        <TextField
-          fullWidth
+    <Layout>
+      <StyledForm onSubmit={formik.handleSubmit}>
+        <StyledTextField
           id="newPassword"
           name="newPassword"
           label="New Password"
@@ -82,18 +96,11 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
           </Button>
           {formik.isSubmitting && <StyledSubmitProgress size={24} />}
         </StyledWrapper>
-      </form>
-    </div>
+      </StyledForm>
+    </Layout>
   );
 };
 
-ChangePassword.getInitialProps = async ({ query }) => {
-  return {
-    token: query.token as string,
-  };
-};
-
 export default withUrqlClient(createUrqlClient as NextUrqlClientConfig)(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ChangePassword as any
+  ChangePassword
 );

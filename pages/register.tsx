@@ -10,9 +10,20 @@ import { toErrorMap } from "../utils/utils";
 import { useRouter } from "next/router";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
+import Layout from "../components/Layout";
+
+const StyledTextField = styled(TextField).attrs(() => ({
+  fullWidth: true,
+  variant: "outlined",
+  size: "small",
+}))`
+  margin-bottom: 12px;
+`;
 
 const StyledWrapper = styled.div`
   position: relative;
+  margin: auto;
+  width: 50%;
 `;
 
 const StyledSubmitProgress = styled(CircularProgress)`
@@ -21,6 +32,12 @@ const StyledSubmitProgress = styled(CircularProgress)`
   left: 50%;
   margin-top: -12px;
   margin-left: -12px;
+`;
+
+const StyledForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 `;
 
 const validationSchema = yup.object({
@@ -50,10 +67,9 @@ const Register: React.FC = () => {
   });
 
   return (
-    <div>
-      <form onSubmit={formik.handleSubmit}>
-        <TextField
-          fullWidth
+    <Layout>
+      <StyledForm onSubmit={formik.handleSubmit}>
+        <StyledTextField
           id="email"
           name="email"
           label="Email"
@@ -62,8 +78,7 @@ const Register: React.FC = () => {
           error={formik.touched.email && Boolean(formik.errors.email)}
           helperText={formik.touched.email && formik.errors.email}
         />
-        <TextField
-          fullWidth
+        <StyledTextField
           id="username"
           name="username"
           label="Username"
@@ -72,7 +87,7 @@ const Register: React.FC = () => {
           error={formik.touched.username && Boolean(formik.errors.username)}
           helperText={formik.touched.username && formik.errors.username}
         />
-        <TextField
+        <StyledTextField
           fullWidth
           id="password"
           name="password"
@@ -95,8 +110,8 @@ const Register: React.FC = () => {
           </Button>
           {formik.isSubmitting && <StyledSubmitProgress size={24} />}
         </StyledWrapper>
-      </form>
-    </div>
+      </StyledForm>
+    </Layout>
   );
 };
 
