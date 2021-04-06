@@ -34,6 +34,12 @@ const StyledSubmitProgress = styled(CircularProgress)`
   margin-left: -12px;
 `;
 
+const StyledForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+`;
+
 const validationSchema = yup.object({
   username: yup.string(),
   text: yup.string(),
@@ -58,7 +64,7 @@ const CreatePost: React.FC = () => {
 
   return (
     <Layout>
-      <form onSubmit={formik.handleSubmit}>
+      <StyledForm onSubmit={formik.handleSubmit}>
         <StyledTextField
           id="title"
           name="title"
@@ -91,7 +97,7 @@ const CreatePost: React.FC = () => {
           </Button>
           {formik.isSubmitting && <StyledSubmitProgress size={24} />}
         </StyledWrapper>
-      </form>
+      </StyledForm>
     </Layout>
   );
 };
