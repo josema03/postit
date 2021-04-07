@@ -1,9 +1,9 @@
-import { Card, CardContent, CardHeader } from "@material-ui/core";
+import { Button, Card, CardContent, CardHeader } from "@material-ui/core";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import Layout from "../components/Layout";
 import { usePostsQuery } from "../src/generated/graphql";
@@ -21,16 +21,17 @@ const StyledBox = styled.div`
 `;
 
 function Index(): React.ReactElement {
+  const [variables, setVariables] = useState({
+    cursor: null,
+    limit: 10,
+  });
   const [{ data, fetching }] = usePostsQuery({
-    variables: {
-      cursor: null,
-      limit: 10,
-    },
+    variables,
   });
 
   let posts: JSX.Element | JSX.Element[] = <p>loading...</p>;
-  if (data?.posts.length) {
-    posts = data.posts.map((post) => {
+  if (data?.posts?.posts?.length) {
+    posts = data.posts.posts.map((post) => {
       return (
         <StyledCard key={`${post.id}`}>
           <CardHeader title={post.title} subheader="creator" />
@@ -39,9 +40,15 @@ function Index(): React.ReactElement {
       );
     });
   }
-  if (!data?.posts?.length && !fetching) {
+  if (!data?.posts?.posts?.length && !fetching) {
     posts = <p>No posts found</p>;
   }
+
+  const changeVariables = () => {
+    const cursor = data.posts.posts[data.posts.posts.length - 1].id || null;
+    const limit = variables.limit;
+    setVariables({ limit, cursor: String(cursor) });
+  };
 
   return (
     <Layout>
@@ -53,6 +60,13 @@ function Index(): React.ReactElement {
           <Link href="/create-post">Create Post</Link>
         </StyledBox>
         {posts}
+        {!fetching && data?.posts?.hasMore && (
+          <Box display="flex" justifyContent="center">
+            <Button color="primary" onClick={() => changeVariables()}>
+              Load more...
+            </Button>
+          </Box>
+        )}
       </Box>
     </Layout>
   );
