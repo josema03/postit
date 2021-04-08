@@ -1,4 +1,10 @@
-import { Button, Card, CardContent, CardHeader } from "@material-ui/core";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CircularProgress,
+} from "@material-ui/core";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
@@ -29,12 +35,15 @@ function Index(): React.ReactElement {
     variables,
   });
 
-  let posts: JSX.Element | JSX.Element[] = <p>loading...</p>;
+  let posts: JSX.Element | JSX.Element[] = <CircularProgress />;
   if (data?.posts?.posts?.length) {
     posts = data.posts.posts.map((post) => {
       return (
         <StyledCard key={`${post.id}`}>
-          <CardHeader title={post.title} subheader="creator" />
+          <CardHeader
+            title={post.title}
+            subheader={`${post.creator.username} at ${post.createdAt}`}
+          />
           <CardContent>{post.textSnippet}...</CardContent>
         </StyledCard>
       );
