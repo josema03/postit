@@ -3,7 +3,10 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import React, { useState } from "react";
 import styled from "styled-components";
-import { PostSnippetFragment, useVoteMutation } from "../src/generated/graphql";
+import {
+  PostSnippetFragment,
+  useVoteMutation,
+} from "../graphql/generated/graphql";
 
 const StyledCardVote = styled.div`
   display: flex;

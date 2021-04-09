@@ -5,12 +5,12 @@ import TextField from "@material-ui/core/TextField";
 import { useFormik } from "formik";
 import styled from "styled-components";
 import { CircularProgress } from "@material-ui/core";
-import { useRegisterMutation } from "../src/generated/graphql";
-import { toErrorMap } from "../utils/utils";
+import { useRegisterMutation } from "../src/graphql/generated/graphql";
+import { toErrorMap } from "../src/utils/utils";
 import { useRouter } from "next/router";
-import { createUrqlClient } from "../utils/createUrqlClient";
+import { createUrqlClient } from "../src/utils/createUrqlClient";
 import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
-import Layout from "../components/Layout";
+import Layout from "../src/components/Layout";
 
 const StyledTextField = styled(TextField).attrs(() => ({
   fullWidth: true,

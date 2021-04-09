@@ -5,10 +5,10 @@ import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import Link from "next/link";
 import React, { useState } from "react";
 import styled from "styled-components";
-import { CardVote } from "../components/CardVote";
-import Layout from "../components/Layout";
-import { usePostsQuery } from "../src/generated/graphql";
-import { createUrqlClient } from "../utils/createUrqlClient";
+import { CardVote } from "../src/components/CardVote";
+import Layout from "../src/components/Layout";
+import { usePostsQuery } from "../src/graphql/generated/graphql";
+import { createUrqlClient } from "../src/utils/createUrqlClient";
 
 const StyledCard = styled(Card)`
   display: flex;

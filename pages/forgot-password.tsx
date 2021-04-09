@@ -5,9 +5,9 @@ import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
 import * as yup from "yup";
-import Layout from "../components/Layout";
-import { useForgotPasswordMutation } from "../src/generated/graphql";
-import { createUrqlClient } from "../utils/createUrqlClient";
+import Layout from "../src/components/Layout";
+import { useForgotPasswordMutation } from "../src/graphql/generated/graphql";
+import { createUrqlClient } from "../src/utils/createUrqlClient";
 
 const StyledWrapper = styled.div`
   position: relative;

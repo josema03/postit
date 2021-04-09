@@ -9,7 +9,7 @@ import {
 import Link from "next/link";
 import React from "react";
 import styled from "styled-components";
-import { useLogoutMutation, useMeQuery } from "../src/generated/graphql";
+import { useLogoutMutation, useMeQuery } from "../graphql/generated/graphql";
 import { isServerSide } from "../utils/isServerSide";
 
 const StyledTypography = styled(Typography).attrs(() => ({

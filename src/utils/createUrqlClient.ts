@@ -16,7 +16,7 @@ import {
   LogoutMutation,
   RegisterMutation,
   VoteMutationVariables,
-} from "../src/generated/graphql";
+} from "../graphql/generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import { isServerSide } from "./isServerSide";
 
