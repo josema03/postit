@@ -39,6 +39,14 @@ const StyledCardBody = styled.div`
   padding: 5px 2px;
 `;
 
+const StyledTypography = styled(Typography)`
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.7;
+  }
+`;
+
 function Index(): React.ReactElement {
   const [variables, setVariables] = useState({
     cursor: null,
@@ -56,7 +64,9 @@ function Index(): React.ReactElement {
           <CardVote post={post} />
           <StyledCardContent>
             <StyledCardHeader>
-              <Typography variant="h6">{post.title}</Typography>
+              <Link href="post/[id]" as={`post/${post.id}`}>
+                <StyledTypography variant="h6">{post.title}</StyledTypography>
+              </Link>
               <Typography variant="subtitle1" color="textSecondary">
                 By {`${post.creator.username} at ${post.createdAt}`}
               </Typography>

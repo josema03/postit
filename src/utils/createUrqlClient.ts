@@ -58,7 +58,7 @@ export const createUrqlClient = (
   ctx: any
 ): ClientOptions => {
   let cookie = "";
-  if (isServerSide()) {
+  if (isServerSide() && ctx) {
     cookie = ctx.req.headers.cookie;
   }
 
