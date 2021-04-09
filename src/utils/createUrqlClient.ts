@@ -19,6 +19,7 @@ import {
 } from "../graphql/generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import { isServerSide } from "./isServerSide";
+import { invalidatePostsQueries } from "./invalidatePostsQueries";
 
 const cursorPagination = () => {
   return (_parent, fieldArgs, cache, info) => {
@@ -110,15 +111,10 @@ export const createUrqlClient = (
               }
             },
             createPost: (_result, _args, cache, _info) => {
-              const allFields = cache.inspectFields("Query");
-              const fieldInfos = allFields.filter(
-                (info) => info.fieldName === "posts"
-              );
-              fieldInfos.forEach((fieldInfo) => {
-                cache.invalidate("Query", "posts", fieldInfo.arguments || {});
-              });
+              invalidatePostsQueries(cache);
             },
             login: (result, _args, cache, _info) => {
+              invalidatePostsQueries(cache);
               betterUpdateQuery<LoginMutation, MeQuery>(
                 cache,
                 { query: MeDocument },
@@ -135,6 +131,7 @@ export const createUrqlClient = (
               );
             },
             logout: (result, _args, cache, _info) => {
+              invalidatePostsQueries(cache);
               betterUpdateQuery<LogoutMutation, MeQuery>(
                 cache,
                 { query: MeDocument },
@@ -149,6 +146,7 @@ export const createUrqlClient = (
               );
             },
             register: (result, _args, cache, _info) => {
+              invalidatePostsQueries(cache);
               betterUpdateQuery<RegisterMutation, MeQuery>(
                 cache,
                 { query: MeDocument },
