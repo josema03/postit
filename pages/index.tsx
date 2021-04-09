@@ -1,29 +1,42 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-} from "@material-ui/core";
+import { Button, Card, CircularProgress } from "@material-ui/core";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import Link from "next/link";
 import React, { useState } from "react";
 import styled from "styled-components";
+import { CardVote } from "../components/CardVote";
 import Layout from "../components/Layout";
 import { usePostsQuery } from "../src/generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 
 const StyledCard = styled(Card)`
-  margin: 10px;
+  display: flex;
+  margin: 20px 10px;
+  padding: 0px;
   box-shadow: 0px 0px 5px 0px black;
+`;
+
+const StyledCardContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1 1;
 `;
 
 const StyledBox = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+`;
+
+const StyledCardHeader = styled.div`
+  display: block;
+  padding: 2px;
+`;
+
+const StyledCardBody = styled.div`
+  display: block;
+  padding: 5px 2px;
 `;
 
 function Index(): React.ReactElement {
@@ -40,11 +53,18 @@ function Index(): React.ReactElement {
     posts = data.posts.posts.map((post) => {
       return (
         <StyledCard key={`${post.id}`}>
-          <CardHeader
-            title={post.title}
-            subheader={`${post.creator.username} at ${post.createdAt}`}
-          />
-          <CardContent>{post.textSnippet}...</CardContent>
+          <CardVote post={post} />
+          <StyledCardContent>
+            <StyledCardHeader>
+              <Typography variant="h6">{post.title}</Typography>
+              <Typography variant="subtitle1" color="textSecondary">
+                By {`${post.creator.username} at ${post.createdAt}`}
+              </Typography>
+            </StyledCardHeader>
+            <StyledCardBody>
+              <Typography variant="body1">{post.textSnippet}...</Typography>
+            </StyledCardBody>
+          </StyledCardContent>
         </StyledCard>
       );
     });
