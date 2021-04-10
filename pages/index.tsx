@@ -2,6 +2,7 @@ import { Button, Card, CircularProgress } from "@material-ui/core";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import React, { useState } from "react";
 import styled from "styled-components";
@@ -9,6 +10,10 @@ import { CardVote } from "../src/components/CardVote";
 import Layout from "../src/components/Layout";
 import { usePostsQuery } from "../src/graphql/generated/graphql";
 import { createUrqlClient } from "../src/utils/createUrqlClient";
+
+const PostToolbar = dynamic(() => import("../src/components/PostToolbar"), {
+  ssr: false,
+});
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -30,7 +35,8 @@ const StyledBox = styled.div`
 `;
 
 const StyledCardHeader = styled.div`
-  display: block;
+  display: flex;
+  justify-content: space-between;
   padding: 2px;
 `;
 
@@ -59,17 +65,20 @@ function Index(): React.ReactElement {
   let posts: JSX.Element | JSX.Element[] = <CircularProgress />;
   if (data?.posts?.posts?.length) {
     posts = data.posts.posts.map((post) => {
-      return (
+      return !post ? null : (
         <StyledCard key={`${post.id}`}>
           <CardVote post={post} />
           <StyledCardContent>
             <StyledCardHeader>
-              <Link href="post/[id]" as={`post/${post.id}`}>
-                <StyledTypography variant="h6">{post.title}</StyledTypography>
-              </Link>
-              <Typography variant="subtitle1" color="textSecondary">
-                By {`${post.creator.username} at ${post.createdAt}`}
-              </Typography>
+              <Box>
+                <Link href="post/[id]" as={`post/${post.id}`}>
+                  <StyledTypography variant="h6">{post.title}</StyledTypography>
+                </Link>
+                <Typography variant="subtitle1" color="textSecondary">
+                  By {`${post.creator.username} at ${post.createdAt}`}
+                </Typography>
+              </Box>
+              <PostToolbar post={post} />
             </StyledCardHeader>
             <StyledCardBody>
               <Typography variant="body1">{post.textSnippet}...</Typography>
