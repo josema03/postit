@@ -6,7 +6,7 @@ export function betterUpdateQuery<Result, Query>(
   cache: Cache,
   queryInput: QueryInput,
   result: any,
-  fn: (r: Result, q: Query) => Query
+  fn: (r: Result, queryData: Query) => Query
 ): void {
   return cache.updateQuery(
     queryInput,

@@ -37,6 +37,7 @@ const StyledBox = styled.div`
 const StyledCardHeader = styled.div`
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   padding: 2px;
 `;
 

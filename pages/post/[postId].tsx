@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
 import Layout from "../../src/components/Layout";
+import PostToolbar from "../../src/components/PostToolbar";
 import { usePostQuery } from "../../src/graphql/generated/graphql";
 import { createUrqlClient } from "../../src/utils/createUrqlClient";
 
@@ -21,7 +22,9 @@ const StyledCardContent = styled.div`
 `;
 
 const StyledCardHeader = styled.div`
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px 10px 5px 10px;
 `;
 
@@ -65,6 +68,7 @@ const Post: React.FC = () => {
         <StyledCardContent>
           <StyledCardHeader>
             <Typography variant="h4">{data.post.title}</Typography>
+            <PostToolbar post={data.post} />
           </StyledCardHeader>
           <StyledCardBody>
             <Typography variant="body1">{data.post.text}</Typography>

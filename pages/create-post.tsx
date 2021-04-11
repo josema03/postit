@@ -41,8 +41,8 @@ const StyledForm = styled.form`
 `;
 
 const validationSchema = yup.object({
-  username: yup.string(),
-  text: yup.string(),
+  title: yup.string().required("Post must have a title"),
+  text: yup.string().required("Post cannot be empty"),
 });
 
 const CreatePost: React.FC = () => {

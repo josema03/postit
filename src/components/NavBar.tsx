@@ -7,6 +7,7 @@ import {
   Typography,
 } from "@material-ui/core";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
 import { useLogoutMutation, useMeQuery } from "../graphql/generated/graphql";
@@ -38,8 +39,14 @@ const StyledToolbar = styled(Toolbar)`
 `;
 
 const NavBar: React.FunctionComponent = (): React.ReactElement => {
+  const router = useRouter();
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
   const [{ data, fetching }] = useMeQuery({ pause: isServerSide() });
+
+  const logoutAndGoHome = async () => {
+    await logout();
+    router.push("/");
+  };
 
   let userInterface = (
     <>
@@ -69,7 +76,7 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
           <StyledTypography>{data.me.username}</StyledTypography>
         </Button>
         <StyledWrapper>
-          <Button onClick={() => logout()} disabled={logoutFetching}>
+          <Button onClick={() => logoutAndGoHome()} disabled={logoutFetching}>
             <StyledTypography>Logout</StyledTypography>
           </Button>
           {logoutFetching && <StyledLogoutLoading />}

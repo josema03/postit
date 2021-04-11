@@ -17,6 +17,7 @@ import {
   RegisterMutation,
   VoteMutationVariables,
   DeletePostMutationVariables,
+  UpdatePostMutationVariables,
 } from "../graphql/generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import { isServerSide } from "./isServerSide";
@@ -117,6 +118,39 @@ export const createUrqlClient = (
             },
             createPost: (_result, _args, cache, _info) => {
               invalidatePostsQueries(cache);
+            },
+            updatePost: (_result, args, cache, _info) => {
+              const { id } = args as UpdatePostMutationVariables;
+              const data = cache.readFragment(
+                gql`
+                  fragment getData on Post {
+                    title
+                    text
+                    textSnippet
+                  }
+                `,
+                { id }
+              );
+              if (data) {
+                const newTitle = args.title;
+                const newText = args.text;
+                const newTextSnippet = (args.text as string).slice(0, 50);
+                cache.writeFragment(
+                  gql`
+                    fragment updateData on Post {
+                      title
+                      text
+                      textSnippet
+                    }
+                  `,
+                  {
+                    id,
+                    title: newTitle,
+                    text: newText,
+                    textSnippet: newTextSnippet,
+                  }
+                );
+              }
             },
             login: (result, _args, cache, _info) => {
               invalidatePostsQueries(cache);
