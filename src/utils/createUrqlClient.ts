@@ -170,7 +170,6 @@ export const createUrqlClient = (
               );
             },
             logout: (result, _args, cache, _info) => {
-              invalidatePostsQueries(cache);
               betterUpdateQuery<LogoutMutation, MeQuery>(
                 cache,
                 { query: MeDocument },

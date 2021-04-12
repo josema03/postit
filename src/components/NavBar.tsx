@@ -45,7 +45,7 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
 
   const logoutAndGoHome = async () => {
     await logout();
-    router.push("/");
+    await router.reload();
   };
 
   let userInterface = (
