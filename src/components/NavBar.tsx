@@ -74,6 +74,11 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
         <Button>
           <StyledTypography>{data.me.username}</StyledTypography>
         </Button>
+        <Link href="/create-post">
+          <Button>
+            <StyledTypography>New Post</StyledTypography>
+          </Button>
+        </Link>
         <StyledWrapper>
           <Button onClick={() => logoutAndGoHome()} disabled={logoutLoading}>
             <StyledTypography>Logout</StyledTypography>

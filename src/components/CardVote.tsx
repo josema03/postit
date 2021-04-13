@@ -7,6 +7,7 @@ import styled from "styled-components";
 import {
   Post,
   PostSnippetFragment,
+  useMeQuery,
   useVoteMutation,
   VoteMutation,
 } from "../graphql/generated/graphql";
@@ -20,6 +21,7 @@ const StyledCardVote = styled.div`
   flex: 0 0;
   padding: 2px;
   margin-right: 4px;
+  background-color: #f5f5f5;
 `;
 
 const StyledButtonWrapper = styled.div`
@@ -71,10 +73,15 @@ const updateAfterVote = (
 };
 
 export const CardVote: React.FC<CardVoteProps> = ({ post }) => {
+  const { data: meData } = useMeQuery();
   const [loading, setLoading] = useState<
     "like-loading" | "dislike-loading" | "no-loading"
   >("no-loading");
-  const [vote] = useVoteMutation();
+  const [vote] = useVoteMutation({
+    onError: (error) => {
+      console.log(error);
+    },
+  });
 
   const voteLike = async (): Promise<void> => {
     setLoading("like-loading");
@@ -107,7 +114,11 @@ export const CardVote: React.FC<CardVoteProps> = ({ post }) => {
           size="small"
           color={post.voteStatus > 0 ? "primary" : "default"}
           arial-label="like"
-          disabled={loading === "like-loading" || loading === "dislike-loading"}
+          disabled={
+            loading === "like-loading" ||
+            loading === "dislike-loading" ||
+            !meData?.me
+          }
           onClick={() => voteLike()}
         >
           <KeyboardArrowUpIcon />
@@ -122,7 +133,11 @@ export const CardVote: React.FC<CardVoteProps> = ({ post }) => {
           size="small"
           color={post.voteStatus < 0 ? "secondary" : "default"}
           aria-label="dislike"
-          disabled={loading === "like-loading" || loading === "dislike-loading"}
+          disabled={
+            loading === "like-loading" ||
+            loading === "dislike-loading" ||
+            !meData?.me
+          }
           onClick={() => voteDislike()}
         >
           <KeyboardArrowDownIcon />

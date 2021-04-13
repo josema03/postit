@@ -29,6 +29,8 @@ const StyledMain = styled.main`
   max-width: 75%;
   flex-grow: 1;
   flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 `;
 
 const Layout: React.FC<unknown> = ({ children }) => {

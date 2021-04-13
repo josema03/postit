@@ -16,7 +16,8 @@ const PostToolbar = dynamic(() => import("../src/components/PostToolbar"), {
 
 const StyledCard = styled(Card)`
   display: flex;
-  margin: 20px 10px;
+  width: 100%;
+  margin: 10px 10px;
   padding: 0px;
   box-shadow: 0px 0px 5px 0px black;
 `;
@@ -53,6 +54,20 @@ const StyledTypography = styled(Typography)`
   }
 `;
 
+const StyledSubmitProgress = styled(CircularProgress)`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -12px;
+  margin-left: -12px;
+`;
+
+const StyledWrapper = styled.div`
+  position: relative;
+  margin: auto;
+  width: 50%;
+`;
+
 function Index(): React.ReactElement {
   const { data, loading, fetchMore, variables: queryVariables } = usePostsQuery(
     {
@@ -60,6 +75,7 @@ function Index(): React.ReactElement {
         cursor: null,
         limit: 10,
       },
+      notifyOnNetworkStatusChange: true,
     }
   );
 
@@ -93,7 +109,7 @@ function Index(): React.ReactElement {
     posts = <p>No posts found</p>;
   }
 
-  const changeVariables = () => {
+  const loadMore = () => {
     const cursor = data.posts.posts[data.posts.posts.length - 1].id || null;
     const limit = queryVariables?.limit;
     fetchMore({
@@ -103,22 +119,25 @@ function Index(): React.ReactElement {
 
   return (
     <Layout>
-      <Box>
-        <StyledBox>
-          <Typography variant="h4" component="h1" gutterBottom>
-            QLQ
-          </Typography>
-          <Link href="/create-post">Create Post</Link>
-        </StyledBox>
-        {posts}
-        {!loading && data?.posts?.hasMore && (
-          <Box display="flex" justifyContent="center">
-            <Button color="primary" onClick={() => changeVariables()}>
-              Load more...
-            </Button>
-          </Box>
-        )}
-      </Box>
+      <StyledBox>
+        <Typography variant="h4" component="h1" gutterBottom>
+          QLQ
+        </Typography>
+      </StyledBox>
+      {posts}
+      {data?.posts?.hasMore && (
+        <StyledWrapper>
+          <Button
+            fullWidth
+            color="primary"
+            disabled={loading}
+            onClick={() => loadMore()}
+          >
+            Load more...
+          </Button>
+          {loading && <StyledSubmitProgress size={24} />}
+        </StyledWrapper>
+      )}
     </Layout>
   );
 }

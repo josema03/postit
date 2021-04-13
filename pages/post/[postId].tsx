@@ -1,4 +1,4 @@
-import { Card, CircularProgress, Typography } from "@material-ui/core";
+import { Box, Card, CircularProgress, Typography } from "@material-ui/core";
 import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
@@ -9,6 +9,7 @@ import { usePostQuery } from "../../src/graphql/generated/graphql";
 
 const StyledCard = styled(Card)`
   display: flex;
+  width: 100%;
   margin: 20px 10px;
   padding: 0px;
   box-shadow: 0px 0px 5px 0px black;
@@ -22,7 +23,7 @@ const StyledCardContent = styled.div`
 
 const StyledCardHeader = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 10px 10px 5px 10px;
 `;
@@ -66,7 +67,12 @@ const Post: React.FC = () => {
       <StyledCard>
         <StyledCardContent>
           <StyledCardHeader>
-            <Typography variant="h4">{data.post.title}</Typography>
+            <Box>
+              <Typography variant="h4">{data.post.title}</Typography>
+              <Typography variant="subtitle1" color="textSecondary">
+                By {`${data.post.creator.username} at ${data.post.createdAt}`}
+              </Typography>
+            </Box>
             <PostToolbar post={data.post} />
           </StyledCardHeader>
           <StyledCardBody>

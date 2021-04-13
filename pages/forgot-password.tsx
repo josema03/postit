@@ -5,6 +5,7 @@ import React from "react";
 import styled from "styled-components";
 import * as yup from "yup";
 import Layout from "../src/components/Layout";
+import withApollo from "../src/components/withApollo";
 import { useForgotPasswordMutation } from "../src/graphql/generated/graphql";
 
 const StyledWrapper = styled.div`
