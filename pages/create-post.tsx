@@ -2,14 +2,13 @@ import { CircularProgress } from "@material-ui/core";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import { useFormik } from "formik";
-import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
 import * as yup from "yup";
 import Layout from "../src/components/Layout";
+import withApollo from "../src/components/withApollo";
 import { useCreatePostMutation } from "../src/graphql/generated/graphql";
-import { createUrqlClient } from "../src/utils/createUrqlClient";
 import { useIsAuth } from "../src/utils/useIsAuth";
 
 const StyledWrapper = styled.div`
@@ -47,7 +46,7 @@ const validationSchema = yup.object({
 
 const CreatePost: React.FC = () => {
   const router = useRouter();
-  const [, createPost] = useCreatePostMutation();
+  const [createPost] = useCreatePostMutation();
   const formik = useFormik({
     initialValues: {
       title: "",
@@ -55,7 +54,12 @@ const CreatePost: React.FC = () => {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      await createPost({ postInput: values });
+      await createPost({
+        variables: { postInput: values },
+        update: (cache) => {
+          cache.evict({ fieldName: "posts:{}" });
+        },
+      });
       router.push("/");
     },
   });
@@ -102,6 +106,4 @@ const CreatePost: React.FC = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient as NextUrqlClientConfig)(
-  CreatePost
-);
+export default withApollo({ ssr: false })(CreatePost);

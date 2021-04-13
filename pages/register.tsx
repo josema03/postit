@@ -1,16 +1,18 @@
-import React from "react";
-import * as yup from "yup";
+import { CircularProgress } from "@material-ui/core";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import { useFormik } from "formik";
-import styled from "styled-components";
-import { CircularProgress } from "@material-ui/core";
-import { useRegisterMutation } from "../src/graphql/generated/graphql";
-import { toErrorMap } from "../src/utils/utils";
 import { useRouter } from "next/router";
-import { createUrqlClient } from "../src/utils/createUrqlClient";
-import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
+import React from "react";
+import styled from "styled-components";
+import * as yup from "yup";
 import Layout from "../src/components/Layout";
+import withApollo from "../src/components/withApollo";
+import {
+  MeDocument,
+  useRegisterMutation,
+} from "../src/graphql/generated/graphql";
+import { toErrorMap } from "../src/utils/utils";
 
 const StyledTextField = styled(TextField).attrs(() => ({
   fullWidth: true,
@@ -47,7 +49,7 @@ const validationSchema = yup.object({
 });
 
 const Register: React.FC = () => {
-  const [, register] = useRegisterMutation();
+  const [register] = useRegisterMutation();
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
@@ -57,7 +59,19 @@ const Register: React.FC = () => {
     },
     validationSchema: validationSchema,
     onSubmit: async (values, { setErrors }) => {
-      const response = await register(values);
+      const response = await register({
+        variables: values,
+        update: (cache, { data }) => {
+          cache.writeQuery({
+            query: MeDocument,
+            data: {
+              __typename: "Query",
+              me: data?.register.user,
+            },
+          });
+          cache.evict({ fieldName: "posts:{}" });
+        },
+      });
       if (response.data?.register.errors) {
         setErrors(toErrorMap(response.data.register.errors));
       } else if (response.data?.register.user) {
@@ -115,6 +129,4 @@ const Register: React.FC = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient as NextUrqlClientConfig, {
-  ssr: false,
-})(Register);
+export default withApollo({ ssr: false })(Register);

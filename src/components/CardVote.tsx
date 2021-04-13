@@ -1,11 +1,14 @@
+import { ApolloCache, gql } from "@apollo/client";
 import { CircularProgress, IconButton, Typography } from "@material-ui/core";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import React, { useState } from "react";
 import styled from "styled-components";
 import {
+  Post,
   PostSnippetFragment,
   useVoteMutation,
+  VoteMutation,
 } from "../graphql/generated/graphql";
 
 const StyledCardVote = styled.div`
@@ -34,17 +37,53 @@ interface CardVoteProps {
   post: PostSnippetFragment;
 }
 
+const updateAfterVote = (
+  postId: number,
+  value: number,
+  cache: ApolloCache<VoteMutation>
+) => {
+  const postVoteInfo: Post = cache.readFragment({
+    id: `Post:${postId}`,
+    fragment: gql`
+      fragment postVoteInfo on Post {
+        points
+        voteStatus
+      }
+    `,
+  });
+
+  if (postVoteInfo && postVoteInfo.voteStatus !== value) {
+    cache.writeFragment({
+      id: `Post:${postId}`,
+      fragment: gql`
+        fragment updateVoteInfo on Post {
+          points
+          voteStatus
+        }
+      `,
+      data: {
+        voteStatus: value,
+        points:
+          postVoteInfo.points + (!postVoteInfo.voteStatus ? value : 2 * value),
+      },
+    });
+  }
+};
+
 export const CardVote: React.FC<CardVoteProps> = ({ post }) => {
   const [loading, setLoading] = useState<
     "like-loading" | "dislike-loading" | "no-loading"
   >("no-loading");
-  const [, vote] = useVoteMutation();
+  const [vote] = useVoteMutation();
 
   const voteLike = async (): Promise<void> => {
     setLoading("like-loading");
     await vote({
-      value: 1,
-      postId: post.id,
+      variables: {
+        value: 1,
+        postId: post.id,
+      },
+      update: (cache) => updateAfterVote(post.id, 1, cache),
     });
     setLoading("no-loading");
   };
@@ -52,8 +91,11 @@ export const CardVote: React.FC<CardVoteProps> = ({ post }) => {
   const voteDislike = async (): Promise<void> => {
     setLoading("dislike-loading");
     await vote({
-      value: -1,
-      postId: post.id,
+      variables: {
+        value: -1,
+        postId: post.id,
+      },
+      update: (cache) => updateAfterVote(post.id, -1, cache),
     });
     setLoading("no-loading");
   };

@@ -1,12 +1,11 @@
 import { Card, CircularProgress, Typography } from "@material-ui/core";
-import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
 import Layout from "../../src/components/Layout";
 import PostToolbar from "../../src/components/PostToolbar";
+import withApollo from "../../src/components/withApollo";
 import { usePostQuery } from "../../src/graphql/generated/graphql";
-import { createUrqlClient } from "../../src/utils/createUrqlClient";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -37,12 +36,12 @@ const Post: React.FC = () => {
   const router = useRouter();
   const { postId: postIdString } = router.query;
   const postId = parseInt(postIdString as string);
-  const [{ data, fetching }] = usePostQuery({
+  const { data, loading } = usePostQuery({
     variables: { id: postId },
-    pause: typeof postId !== "number",
+    skip: typeof postId !== "number",
   });
 
-  if (fetching) {
+  if (loading) {
     return (
       <Layout>
         <CircularProgress />
@@ -50,7 +49,7 @@ const Post: React.FC = () => {
     );
   }
 
-  if (!data?.post && !fetching) {
+  if (!data?.post && !loading) {
     return (
       <Layout>
         <StyledCard>
@@ -79,4 +78,4 @@ const Post: React.FC = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Post);
+export default withApollo({ ssr: true })(Post);

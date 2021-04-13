@@ -16,12 +16,17 @@ interface PostToolbarProps {
 
 const PostToolbar: React.FC<PostToolbarProps> = ({ post }) => {
   const router = useRouter();
-  const [{ data }] = useMeQuery();
-  const [, deletePost] = useDeletePostMutation();
+  const { data } = useMeQuery();
+  const [deletePost] = useDeletePostMutation();
 
   const deletePostAndGoHome = async () => {
     await router.push("/");
-    deletePost({ id: post.id });
+    deletePost({
+      variables: { id: post.id },
+      update: (cache) => {
+        cache.evict({ id: "Post:" + String(post.id) });
+      },
+    });
   };
 
   if (post.creator.id === data?.me?.id) {

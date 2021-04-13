@@ -6,18 +6,17 @@ import {
   Typography,
 } from "@material-ui/core";
 import { useFormik } from "formik";
-import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import * as yup from "yup";
 import Layout from "../../../src/components/Layout";
+import withApollo from "../../../src/components/withApollo";
 import {
   useMeQuery,
   usePostQuery,
   useUpdatePostMutation,
 } from "../../../src/graphql/generated/graphql";
-import { createUrqlClient } from "../../../src/utils/createUrqlClient";
 import { useIsAuth } from "../../../src/utils/useIsAuth";
 
 const StyledCard = styled(Card)`
@@ -70,15 +69,15 @@ const EditPost = () => {
   const { postId: postIdString } = router.query;
   const postId =
     typeof postIdString === "string" ? parseInt(postIdString) : undefined;
-  const [{ data, fetching }] = usePostQuery({
+  const { data, loading } = usePostQuery({
     variables: { id: postId },
-    pause: typeof postId !== "number",
+    skip: typeof postId !== "number",
   });
   const [isQuerySent, setIsQuerySent] = useState(false);
 
-  const [{ data: meData, fetching: meFetching }] = useMeQuery();
+  const { data: meData, loading: meLoading } = useMeQuery();
 
-  const [, updatePost] = useUpdatePostMutation();
+  const [updatePost] = useUpdatePostMutation();
 
   const formik = useFormik({
     initialValues: {
@@ -87,7 +86,9 @@ const EditPost = () => {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      await updatePost({ id: postId, title: values.title, text: values.text });
+      await updatePost({
+        variables: { id: postId, title: values.title, text: values.text },
+      });
       router.push("/");
     },
   });
@@ -103,12 +104,12 @@ const EditPost = () => {
   }, [data]);
 
   useEffect(() => {
-    if (fetching || data?.post) {
+    if (loading || data?.post) {
       setIsQuerySent(true);
     }
-  }, [fetching]);
+  }, [loading]);
 
-  if (fetching || !isQuerySent || meFetching) {
+  if (loading || !isQuerySent || meLoading) {
     return (
       <Layout>
         <CircularProgress />
@@ -116,7 +117,7 @@ const EditPost = () => {
     );
   }
 
-  if (!data?.post && !fetching) {
+  if (!data?.post && !loading) {
     return (
       <Layout>
         <StyledCard>
@@ -180,4 +181,4 @@ const EditPost = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(EditPost);
+export default withApollo({ ssr: false })(EditPost);

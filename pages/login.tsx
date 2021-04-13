@@ -1,17 +1,16 @@
-import React from "react";
-import * as yup from "yup";
+import { CircularProgress } from "@material-ui/core";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import { useFormik } from "formik";
-import styled from "styled-components";
-import { CircularProgress } from "@material-ui/core";
-import { useLoginMutation } from "../src/graphql/generated/graphql";
-import { toErrorMap } from "../src/utils/utils";
-import { useRouter } from "next/router";
-import { createUrqlClient } from "../src/utils/createUrqlClient";
-import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import React from "react";
+import styled from "styled-components";
+import * as yup from "yup";
 import Layout from "../src/components/Layout";
+import withApollo from "../src/components/withApollo";
+import { MeDocument, useLoginMutation } from "../src/graphql/generated/graphql";
+import { toErrorMap } from "../src/utils/utils";
 
 const StyledWrapper = styled.div`
   position: relative;
@@ -52,7 +51,7 @@ const validationSchema = yup.object({
 });
 
 const Login: React.FC = () => {
-  const [, login] = useLoginMutation();
+  const [login] = useLoginMutation();
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
@@ -61,7 +60,19 @@ const Login: React.FC = () => {
     },
     validationSchema: validationSchema,
     onSubmit: async (values, { setErrors }) => {
-      const response = await login(values);
+      const response = await login({
+        variables: values,
+        update: (cache, { data }) => {
+          cache.writeQuery({
+            query: MeDocument,
+            data: {
+              __typename: "Query",
+              me: data?.login.user,
+            },
+          });
+          cache.evict({ fieldName: "posts:{}" });
+        },
+      });
       if (response.data?.login.errors) {
         setErrors(toErrorMap(response.data.login.errors));
       } else if (response.data?.login.user) {
@@ -119,6 +130,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient as NextUrqlClientConfig, {
-  ssr: false,
-})(Login);
+export default withApollo({ ssr: false })(Login);

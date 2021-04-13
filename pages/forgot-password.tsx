@@ -1,13 +1,11 @@
 import { Button, CircularProgress, TextField } from "@material-ui/core";
 import { useFormik } from "formik";
-import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
 import * as yup from "yup";
 import Layout from "../src/components/Layout";
 import { useForgotPasswordMutation } from "../src/graphql/generated/graphql";
-import { createUrqlClient } from "../src/utils/createUrqlClient";
 
 const StyledWrapper = styled.div`
   position: relative;
@@ -42,7 +40,7 @@ const validationSchema = yup.object({
 });
 
 const ForgotPassword: React.FC = () => {
-  const [, forgotPassword] = useForgotPasswordMutation();
+  const [forgotPassword] = useForgotPasswordMutation();
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
@@ -50,7 +48,7 @@ const ForgotPassword: React.FC = () => {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      const response = await forgotPassword(values);
+      const response = await forgotPassword({ variables: values });
       if (response.data?.forgotPassword) {
         router.push("/");
       }
@@ -86,6 +84,4 @@ const ForgotPassword: React.FC = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient as NextUrqlClientConfig)(
-  ForgotPassword
-);
+export default withApollo({ ssr: false })(ForgotPassword);

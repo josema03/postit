@@ -1,15 +1,14 @@
 import { Button, Card, CircularProgress } from "@material-ui/core";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
-import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import { CardVote } from "../src/components/CardVote";
 import Layout from "../src/components/Layout";
+import withApollo from "../src/components/withApollo";
 import { usePostsQuery } from "../src/graphql/generated/graphql";
-import { createUrqlClient } from "../src/utils/createUrqlClient";
 
 const PostToolbar = dynamic(() => import("../src/components/PostToolbar"), {
   ssr: false,
@@ -55,13 +54,14 @@ const StyledTypography = styled(Typography)`
 `;
 
 function Index(): React.ReactElement {
-  const [variables, setVariables] = useState({
-    cursor: null,
-    limit: 10,
-  });
-  const [{ data, fetching }] = usePostsQuery({
-    variables,
-  });
+  const { data, loading, fetchMore, variables: queryVariables } = usePostsQuery(
+    {
+      variables: {
+        cursor: null,
+        limit: 10,
+      },
+    }
+  );
 
   let posts: JSX.Element | JSX.Element[] = <CircularProgress />;
   if (data?.posts?.posts?.length) {
@@ -89,14 +89,16 @@ function Index(): React.ReactElement {
       );
     });
   }
-  if (!data?.posts?.posts?.length && !fetching) {
+  if (!data?.posts?.posts?.length && !loading) {
     posts = <p>No posts found</p>;
   }
 
   const changeVariables = () => {
     const cursor = data.posts.posts[data.posts.posts.length - 1].id || null;
-    const limit = variables.limit;
-    setVariables({ limit, cursor: String(cursor) });
+    const limit = queryVariables?.limit;
+    fetchMore({
+      variables: { limit, cursor: String(cursor) },
+    });
   };
 
   return (
@@ -109,7 +111,7 @@ function Index(): React.ReactElement {
           <Link href="/create-post">Create Post</Link>
         </StyledBox>
         {posts}
-        {!fetching && data?.posts?.hasMore && (
+        {!loading && data?.posts?.hasMore && (
           <Box display="flex" justifyContent="center">
             <Button color="primary" onClick={() => changeVariables()}>
               Load more...
@@ -121,6 +123,4 @@ function Index(): React.ReactElement {
   );
 }
 
-export default withUrqlClient(createUrqlClient as NextUrqlClientConfig, {
-  ssr: true,
-})(Index);
+export default withApollo({ ssr: true })(Index);

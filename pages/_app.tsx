@@ -5,6 +5,7 @@ import Head from "next/head";
 import PropTypes from "prop-types";
 import React from "react";
 import theme from "../src/theme";
+
 export default function MyApp(props: {
   Component: any;
   pageProps: any;

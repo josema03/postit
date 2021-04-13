@@ -1,3 +1,4 @@
+import { useApolloClient } from "@apollo/client";
 import {
   AppBar,
   Box,
@@ -7,12 +8,10 @@ import {
   Typography,
 } from "@material-ui/core";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
 import { useLogoutMutation, useMeQuery } from "../graphql/generated/graphql";
 import { isServerSide } from "../utils/isServerSide";
-
 const StyledTypography = styled(Typography).attrs(() => ({
   variant: "button",
 }))`
@@ -39,13 +38,13 @@ const StyledToolbar = styled(Toolbar)`
 `;
 
 const NavBar: React.FunctionComponent = (): React.ReactElement => {
-  const router = useRouter();
-  const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
-  const [{ data, fetching }] = useMeQuery({ pause: isServerSide() });
+  const apolloClient = useApolloClient();
+  const [logout, { loading: logoutLoading }] = useLogoutMutation();
+  const { data, loading } = useMeQuery({ skip: isServerSide() });
 
   const logoutAndGoHome = async () => {
     await logout();
-    await router.reload();
+    await apolloClient.resetStore();
   };
 
   let userInterface = (
@@ -54,7 +53,7 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
     </>
   );
 
-  if (!isServerSide() && !fetching && !data?.me) {
+  if (!isServerSide() && !loading && !data?.me) {
     userInterface = (
       <>
         <Link href="/login">
@@ -69,17 +68,17 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
         </Link>
       </>
     );
-  } else if (!isServerSide() && !fetching && data.me.username) {
+  } else if (!isServerSide() && !loading && data.me.username) {
     userInterface = (
       <>
         <Button>
           <StyledTypography>{data.me.username}</StyledTypography>
         </Button>
         <StyledWrapper>
-          <Button onClick={() => logoutAndGoHome()} disabled={logoutFetching}>
+          <Button onClick={() => logoutAndGoHome()} disabled={logoutLoading}>
             <StyledTypography>Logout</StyledTypography>
           </Button>
-          {logoutFetching && <StyledLogoutLoading />}
+          {logoutLoading && <StyledLogoutLoading />}
         </StyledWrapper>
       </>
     );

@@ -1,14 +1,16 @@
 /* eslint-disable react/prop-types */
 import { Button, CircularProgress, TextField } from "@material-ui/core";
 import { useFormik } from "formik";
-import { NextUrqlClientConfig, withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
 import * as yup from "yup";
 import Layout from "../../src/components/Layout";
-import { useChangePasswordMutation } from "../../src/graphql/generated/graphql";
-import { createUrqlClient } from "../../src/utils/createUrqlClient";
+import withApollo from "../../src/components/withApollo";
+import {
+  MeDocument,
+  useChangePasswordMutation,
+} from "../../src/graphql/generated/graphql";
 import { toErrorMap } from "../../src/utils/utils";
 
 const StyledWrapper = styled.div`
@@ -44,7 +46,7 @@ const validationSchema = yup.object({
 });
 
 const ChangePassword: React.FC = () => {
-  const [, changePassword] = useChangePasswordMutation();
+  const [changePassword] = useChangePasswordMutation();
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
@@ -53,8 +55,21 @@ const ChangePassword: React.FC = () => {
     validationSchema: validationSchema,
     onSubmit: async (values, { setErrors }) => {
       const response = await changePassword({
-        newPassword: values.newPassword,
-        token: typeof router.query.token === "string" ? router.query.token : "",
+        variables: {
+          newPassword: values.newPassword,
+          token:
+            typeof router.query.token === "string" ? router.query.token : "",
+        },
+        update: (cache, { data }) => {
+          cache.writeQuery({
+            query: MeDocument,
+            data: {
+              __typename: "Query",
+              me: data?.changePassword.user,
+            },
+          });
+          cache.evict({ fieldName: "posts:{}" });
+        },
       });
       if (response.data?.changePassword.errors) {
         const errors = toErrorMap(response.data.changePassword.errors);
@@ -101,6 +116,4 @@ const ChangePassword: React.FC = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient as NextUrqlClientConfig)(
-  ChangePassword
-);
+export default withApollo({ ssr: false })(ChangePassword);
