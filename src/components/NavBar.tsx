@@ -53,7 +53,7 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
     </>
   );
 
-  if (!isServerSide() && !loading && !data?.me) {
+  if (!loading && !data?.me) {
     userInterface = (
       <>
         <Link href="/login">
@@ -68,7 +68,7 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
         </Link>
       </>
     );
-  } else if (!isServerSide() && !loading && data.me.username) {
+  } else if (!loading && data.me.username) {
     userInterface = (
       <>
         <Button>
@@ -92,14 +92,16 @@ const NavBar: React.FunctionComponent = (): React.ReactElement => {
   return (
     <AppBar position="static">
       <StyledToolbar>
-        <Box display="flex">
+        <Box display="flex" alignItems="center">
           <Link href="/">
             <Button>
               <StyledTypography>Home</StyledTypography>
             </Button>
           </Link>
         </Box>
-        <Box display="flex">{userInterface}</Box>
+        <Box display="flex" alignItems="center">
+          {userInterface}
+        </Box>
       </StyledToolbar>
     </AppBar>
   );

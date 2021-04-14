@@ -1,0 +1,23 @@
+query Comments(
+  $parentPath: String
+  $cursor: String
+  $limit: Int!
+  $postId: Int!
+) {
+  comments(
+    parentPath: $parentPath
+    cursor: $cursor
+    limit: $limit
+    postId: $postId
+  ) {
+    id
+    comment
+    parentPath
+    createdAt
+    updatedAt
+    user {
+      id
+      username
+    }
+  }
+}

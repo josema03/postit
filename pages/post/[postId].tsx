@@ -1,11 +1,17 @@
-import { Box, Card, CircularProgress, Typography } from "@material-ui/core";
-import { useRouter } from "next/router";
+import {
+  Box,
+  Card,
+  CircularProgress,
+  Divider,
+  Typography,
+} from "@material-ui/core";
 import React from "react";
 import styled from "styled-components";
+import CommentsSection from "../../src/components/CommentsSection";
 import Layout from "../../src/components/Layout";
 import PostToolbar from "../../src/components/PostToolbar";
 import withApollo from "../../src/components/withApollo";
-import { usePostQuery } from "../../src/graphql/generated/graphql";
+import useGetPostFromRoute from "../../src/utils/useGetPostFromRoute";
 
 const StyledCard = styled(Card)`
   display: flex;
@@ -34,13 +40,7 @@ const StyledCardBody = styled.div`
 `;
 
 const Post: React.FC = () => {
-  const router = useRouter();
-  const { postId: postIdString } = router.query;
-  const postId = parseInt(postIdString as string);
-  const { data, loading } = usePostQuery({
-    variables: { id: postId },
-    skip: typeof postId !== "number",
-  });
+  const { data, loading } = useGetPostFromRoute();
 
   if (loading) {
     return (
@@ -78,6 +78,8 @@ const Post: React.FC = () => {
           <StyledCardBody>
             <Typography variant="body1">{data.post.text}</Typography>
           </StyledCardBody>
+          <Divider variant="middle" />
+          <CommentsSection />
         </StyledCardContent>
       </StyledCard>
     </Layout>

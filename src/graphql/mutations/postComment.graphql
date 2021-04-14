@@ -1,0 +1,3 @@
+mutation PostComment($postId: Int!, $parentPath: String, $text: String!) {
+  postComment(postId: $postId, parentPath: $parentPath, text: $text)
+}
