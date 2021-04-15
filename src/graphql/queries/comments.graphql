@@ -10,14 +10,17 @@ query Comments(
     limit: $limit
     postId: $postId
   ) {
-    id
-    comment
-    parentPath
-    createdAt
-    updatedAt
-    user {
+    result {
       id
-      username
+      text
+      parentPath
+      createdAt
+      updatedAt
+      user {
+        id
+        username
+      }
     }
+    hasMore
   }
 }

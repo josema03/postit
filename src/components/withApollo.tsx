@@ -1,6 +1,9 @@
 import { withApollo } from "next-apollo";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
-import { PaginatedPosts } from "../graphql/generated/graphql";
+import {
+  PaginatedComments,
+  PaginatedPosts,
+} from "../graphql/generated/graphql";
 import { NextPageContext } from "next";
 import { isServerSide } from "../utils/isServerSide";
 
@@ -24,6 +27,21 @@ const client = (ctx: NextPageContext) =>
                 return {
                   ...incoming,
                   posts: [...(existing?.posts || []), ...incoming.posts],
+                };
+              },
+            },
+            comments: {
+              keyArgs: [],
+              merge(
+                exisingCommentsQuery: PaginatedComments | undefined,
+                incomingCommentsQuery: PaginatedComments
+              ): PaginatedComments {
+                return {
+                  ...incomingCommentsQuery,
+                  result: [
+                    ...(exisingCommentsQuery?.result || []),
+                    ...incomingCommentsQuery.result,
+                  ],
                 };
               },
             },

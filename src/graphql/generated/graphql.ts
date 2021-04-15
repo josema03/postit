@@ -17,7 +17,7 @@ export type Scalars = {
 export type Comment = {
   __typename?: 'Comment';
   id: Scalars['Int'];
-  comment: Scalars['String'];
+  text: Scalars['String'];
   parentPath: Scalars['String'];
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
@@ -99,6 +99,12 @@ export type MutationPostCommentArgs = {
   text: Scalars['String'];
 };
 
+export type PaginatedComments = {
+  __typename?: 'PaginatedComments';
+  result: Array<Comment>;
+  hasMore: Scalars['Boolean'];
+};
+
 export type PaginatedPosts = {
   __typename?: 'PaginatedPosts';
   posts: Array<Post>;
@@ -132,7 +138,7 @@ export type Query = {
   posts: PaginatedPosts;
   post?: Maybe<Post>;
   me?: Maybe<User>;
-  comments?: Maybe<Array<Comment>>;
+  comments?: Maybe<PaginatedComments>;
 };
 
 
@@ -351,14 +357,18 @@ export type CommentsQueryVariables = Exact<{
 
 export type CommentsQuery = (
   { __typename?: 'Query' }
-  & { comments?: Maybe<Array<(
-    { __typename?: 'Comment' }
-    & Pick<Comment, 'id' | 'comment' | 'parentPath' | 'createdAt' | 'updatedAt'>
-    & { user: (
-      { __typename?: 'User' }
-      & Pick<User, 'id' | 'username'>
-    ) }
-  )>> }
+  & { comments?: Maybe<(
+    { __typename?: 'PaginatedComments' }
+    & Pick<PaginatedComments, 'hasMore'>
+    & { result: Array<(
+      { __typename?: 'Comment' }
+      & Pick<Comment, 'id' | 'text' | 'parentPath' | 'createdAt' | 'updatedAt'>
+      & { user: (
+        { __typename?: 'User' }
+        & Pick<User, 'id' | 'username'>
+      ) }
+    )> }
+  )> }
 );
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
@@ -785,15 +795,18 @@ export const CommentsDocument = gql`
     limit: $limit
     postId: $postId
   ) {
-    id
-    comment
-    parentPath
-    createdAt
-    updatedAt
-    user {
+    result {
       id
-      username
+      text
+      parentPath
+      createdAt
+      updatedAt
+      user {
+        id
+        username
+      }
     }
+    hasMore
   }
 }
     `;
