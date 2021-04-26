@@ -1,10 +1,10 @@
-import { withApollo } from "next-apollo";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { NextPageContext } from "next";
+import { withApollo } from "next-apollo";
 import {
   PaginatedComments,
   PaginatedPosts,
 } from "../graphql/generated/graphql";
-import { NextPageContext } from "next";
 import { isServerSide } from "../utils/isServerSide";
 
 const client = (ctx: NextPageContext) =>
@@ -33,13 +33,40 @@ const client = (ctx: NextPageContext) =>
             comments: {
               keyArgs: [],
               merge(
-                exisingCommentsQuery: PaginatedComments | undefined,
-                incomingCommentsQuery: PaginatedComments
+                existingCommentsQuery:
+                  | (PaginatedComments & {
+                      result: { __ref: string }[];
+                    })
+                  | undefined,
+                incomingCommentsQuery: PaginatedComments & {
+                  result: { __ref: string }[];
+                }
               ): PaginatedComments {
+                const topExistingCommentId = existingCommentsQuery?.result[0].__ref.replace(
+                  /Comment:/,
+                  ""
+                );
+                const topIncomingCommentId = incomingCommentsQuery.result[0].__ref.replace(
+                  /Comment:/,
+                  ""
+                );
+                if (
+                  parseInt(topIncomingCommentId) >
+                    parseInt(topExistingCommentId) &&
+                  incomingCommentsQuery.result.length === 1
+                ) {
+                  return {
+                    ...incomingCommentsQuery,
+                    result: [
+                      ...incomingCommentsQuery.result,
+                      ...(existingCommentsQuery?.result || []),
+                    ],
+                  };
+                }
                 return {
                   ...incomingCommentsQuery,
                   result: [
-                    ...(exisingCommentsQuery?.result || []),
+                    ...(existingCommentsQuery?.result || []),
                     ...incomingCommentsQuery.result,
                   ],
                 };

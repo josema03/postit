@@ -4,7 +4,12 @@ import React from "react";
 import styled from "styled-components";
 import * as yup from "yup";
 import useGetPostFromRoute from "../utils/useGetPostFromRoute";
-import { usePostCommentMutation } from "../graphql/generated/graphql";
+import {
+  CommentsDocument,
+  CommentsQuery,
+  CommentsQueryVariables,
+  usePostCommentMutation,
+} from "../graphql/generated/graphql";
 
 const StyledForm = styled.form`
   display: flex;
@@ -40,7 +45,25 @@ const validationSchema = yup.object({
 
 const PostComment: React.FC = () => {
   const { data } = useGetPostFromRoute();
-  const [postComment] = usePostCommentMutation();
+  const [postComment] = usePostCommentMutation({
+    update: (cache, { data }) => {
+      const previousQuery = cache.readQuery<
+        CommentsQuery,
+        CommentsQueryVariables
+      >({
+        query: CommentsDocument,
+      });
+      cache.writeQuery({
+        query: CommentsDocument,
+        data: {
+          comments: {
+            ...previousQuery.comments,
+            result: [data.postComment],
+          },
+        },
+      });
+    },
+  });
 
   const formik = useFormik({
     initialValues: {

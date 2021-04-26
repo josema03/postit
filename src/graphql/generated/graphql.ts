@@ -44,7 +44,7 @@ export type Mutation = {
   login: UserResponse;
   logout: Scalars['Boolean'];
   vote: Scalars['Boolean'];
-  postComment: Scalars['Boolean'];
+  postComment?: Maybe<Comment>;
 };
 
 
@@ -192,6 +192,15 @@ export type UsernamePasswordInput = {
   password: Scalars['String'];
 };
 
+export type CommentSnippetFragment = (
+  { __typename?: 'Comment' }
+  & Pick<Comment, 'id' | 'text' | 'parentPath' | 'createdAt' | 'updatedAt'>
+  & { user: (
+    { __typename?: 'User' }
+    & Pick<User, 'id' | 'username'>
+  ) }
+);
+
 export type PostSnippetFragment = (
   { __typename?: 'Post' }
   & Pick<Post, 'id' | 'createdAt' | 'title' | 'textSnippet' | 'points' | 'voteStatus'>
@@ -296,7 +305,10 @@ export type PostCommentMutationVariables = Exact<{
 
 export type PostCommentMutation = (
   { __typename?: 'Mutation' }
-  & Pick<Mutation, 'postComment'>
+  & { postComment?: Maybe<(
+    { __typename?: 'Comment' }
+    & CommentSnippetFragment
+  )> }
 );
 
 export type RegisterMutationVariables = Exact<{
@@ -362,11 +374,7 @@ export type CommentsQuery = (
     & Pick<PaginatedComments, 'hasMore'>
     & { result: Array<(
       { __typename?: 'Comment' }
-      & Pick<Comment, 'id' | 'text' | 'parentPath' | 'createdAt' | 'updatedAt'>
-      & { user: (
-        { __typename?: 'User' }
-        & Pick<User, 'id' | 'username'>
-      ) }
+      & CommentSnippetFragment
     )> }
   )> }
 );
@@ -417,6 +425,19 @@ export type PostsQuery = (
   ) }
 );
 
+export const CommentSnippetFragmentDoc = gql`
+    fragment CommentSnippet on Comment {
+  id
+  text
+  parentPath
+  createdAt
+  updatedAt
+  user {
+    id
+    username
+  }
+}
+    `;
 export const PostSnippetFragmentDoc = gql`
     fragment PostSnippet on Post {
   id
@@ -646,9 +667,11 @@ export type LogoutMutationResult = Apollo.MutationResult<LogoutMutation>;
 export type LogoutMutationOptions = Apollo.BaseMutationOptions<LogoutMutation, LogoutMutationVariables>;
 export const PostCommentDocument = gql`
     mutation PostComment($postId: Int!, $parentPath: String, $text: String!) {
-  postComment(postId: $postId, parentPath: $parentPath, text: $text)
+  postComment(postId: $postId, parentPath: $parentPath, text: $text) {
+    ...CommentSnippet
+  }
 }
-    `;
+    ${CommentSnippetFragmentDoc}`;
 export type PostCommentMutationFn = Apollo.MutationFunction<PostCommentMutation, PostCommentMutationVariables>;
 
 /**
@@ -796,20 +819,12 @@ export const CommentsDocument = gql`
     postId: $postId
   ) {
     result {
-      id
-      text
-      parentPath
-      createdAt
-      updatedAt
-      user {
-        id
-        username
-      }
+      ...CommentSnippet
     }
     hasMore
   }
 }
-    `;
+    ${CommentSnippetFragmentDoc}`;
 
 /**
  * __useCommentsQuery__

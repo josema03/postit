@@ -1,0 +1,11 @@
+fragment CommentSnippet on Comment {
+  id
+  text
+  parentPath
+  createdAt
+  updatedAt
+  user {
+    id
+    username
+  }
+}

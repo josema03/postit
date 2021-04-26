@@ -11,15 +11,7 @@ query Comments(
     postId: $postId
   ) {
     result {
-      id
-      text
-      parentPath
-      createdAt
-      updatedAt
-      user {
-        id
-        username
-      }
+      ...CommentSnippet
     }
     hasMore
   }
