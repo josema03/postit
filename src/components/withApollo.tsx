@@ -42,17 +42,17 @@ const client = (ctx: NextPageContext) =>
                   result: { __ref: string }[];
                 }
               ): PaginatedComments {
-                const topExistingCommentId = existingCommentsQuery?.result[0].__ref.replace(
-                  /Comment:/,
-                  ""
+                const topExistingCommentId = parseInt(
+                  existingCommentsQuery?.result[0]?.__ref.replace(
+                    /Comment:/,
+                    ""
+                  )
                 );
-                const topIncomingCommentId = incomingCommentsQuery.result[0].__ref.replace(
-                  /Comment:/,
-                  ""
+                const topIncomingCommentId = parseInt(
+                  incomingCommentsQuery.result[0]?.__ref.replace(/Comment:/, "")
                 );
                 if (
-                  parseInt(topIncomingCommentId) >
-                    parseInt(topExistingCommentId) &&
+                  topIncomingCommentId > topExistingCommentId &&
                   incomingCommentsQuery.result.length === 1
                 ) {
                   return {

@@ -2,6 +2,7 @@ import { Box, Button, CircularProgress, Typography } from "@material-ui/core";
 import React from "react";
 import styled from "styled-components";
 import { useCommentsQuery } from "../graphql/generated/graphql";
+import useEvictQueryOnUnmount from "../utils/useEvictQueryOnUnmount";
 import useGetPostFromRoute from "../utils/useGetPostFromRoute";
 import PostComment from "./PostComments";
 
@@ -73,6 +74,8 @@ const CommentsSection: React.FC = () => {
       variables: { limit, cursor: String(cursor) },
     });
   };
+
+  useEvictQueryOnUnmount({ id: "ROOT_QUERY", fieldName: "comments" });
 
   return (
     <StyledCardBody>
