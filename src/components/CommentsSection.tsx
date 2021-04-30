@@ -1,22 +1,15 @@
-import { Box, Button, CircularProgress, Typography } from "@material-ui/core";
+import { Box, Button, CircularProgress } from "@material-ui/core";
 import React from "react";
 import styled from "styled-components";
-import { useCommentsQuery } from "../graphql/generated/graphql";
+import { Comment, useCommentsQuery } from "../graphql/generated/graphql";
 import useEvictQueryOnUnmount from "../utils/useEvictQueryOnUnmount";
 import useGetPostFromRoute from "../utils/useGetPostFromRoute";
+import CommentComponent from "./CommentComponent";
 import PostComment from "./PostComments";
 
 const StyledCardBody = styled.div`
   display: block;
   padding: 10px;
-`;
-
-const StyledComment = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 100%;
-  margin: 5px;
 `;
 
 const StyledWrapper = styled.div`
@@ -43,27 +36,13 @@ const CommentsSection: React.FC = () => {
   } = useCommentsQuery({
     variables: {
       postId: postData.post.id,
-      limit: 1,
+      limit: 10,
       parentPath: "/",
     },
   });
 
   const comments = data?.comments?.result?.map((comment) => {
-    return (
-      <StyledComment key={comment.id}>
-        <Box display="flex" alignItems="flex-end">
-          <Typography variant="subtitle2">{comment.user.username}</Typography>
-          <Box marginLeft="5px">
-            <Typography variant="caption" color="textSecondary">
-              At {comment.createdAt}
-            </Typography>
-          </Box>
-        </Box>
-        <Box>
-          <Typography variant="body2">{comment.text}</Typography>
-        </Box>
-      </StyledComment>
-    );
+    return <CommentComponent comment={comment as Comment} key={comment.id} />;
   });
 
   const loadMore = () => {
