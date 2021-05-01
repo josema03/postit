@@ -25,6 +25,7 @@ export type Comment = {
   user: User;
   postId: Scalars['Int'];
   post: Post;
+  hasResponse: Scalars['Boolean'];
 };
 
 export type FieldError = {
@@ -101,6 +102,7 @@ export type MutationPostCommentArgs = {
 
 export type PaginatedComments = {
   __typename?: 'PaginatedComments';
+  id: Scalars['String'];
   result: Array<Comment>;
   hasMore: Scalars['Boolean'];
 };
@@ -194,11 +196,20 @@ export type UsernamePasswordInput = {
 
 export type CommentSnippetFragment = (
   { __typename?: 'Comment' }
-  & Pick<Comment, 'id' | 'text' | 'parentPath' | 'createdAt' | 'updatedAt'>
+  & Pick<Comment, 'id' | 'text' | 'hasResponse' | 'parentPath' | 'createdAt' | 'updatedAt'>
   & { user: (
     { __typename?: 'User' }
     & Pick<User, 'id' | 'username'>
   ) }
+);
+
+export type PaginatedCommentsSnippetFragment = (
+  { __typename?: 'PaginatedComments' }
+  & Pick<PaginatedComments, 'id' | 'hasMore'>
+  & { result: Array<(
+    { __typename?: 'Comment' }
+    & CommentSnippetFragment
+  )> }
 );
 
 export type PostSnippetFragment = (
@@ -371,11 +382,7 @@ export type CommentsQuery = (
   { __typename?: 'Query' }
   & { comments?: Maybe<(
     { __typename?: 'PaginatedComments' }
-    & Pick<PaginatedComments, 'hasMore'>
-    & { result: Array<(
-      { __typename?: 'Comment' }
-      & CommentSnippetFragment
-    )> }
+    & PaginatedCommentsSnippetFragment
   )> }
 );
 
@@ -429,6 +436,7 @@ export const CommentSnippetFragmentDoc = gql`
     fragment CommentSnippet on Comment {
   id
   text
+  hasResponse
   parentPath
   createdAt
   updatedAt
@@ -438,6 +446,15 @@ export const CommentSnippetFragmentDoc = gql`
   }
 }
     `;
+export const PaginatedCommentsSnippetFragmentDoc = gql`
+    fragment PaginatedCommentsSnippet on PaginatedComments {
+  id
+  result {
+    ...CommentSnippet
+  }
+  hasMore
+}
+    ${CommentSnippetFragmentDoc}`;
 export const PostSnippetFragmentDoc = gql`
     fragment PostSnippet on Post {
   id
@@ -818,13 +835,10 @@ export const CommentsDocument = gql`
     limit: $limit
     postId: $postId
   ) {
-    result {
-      ...CommentSnippet
-    }
-    hasMore
+    ...PaginatedCommentsSnippet
   }
 }
-    ${CommentSnippetFragmentDoc}`;
+    ${PaginatedCommentsSnippetFragmentDoc}`;
 
 /**
  * __useCommentsQuery__

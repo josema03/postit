@@ -1,14 +1,12 @@
 import { ApolloClient, InMemoryCache } from "@apollo/client";
 import { NextPageContext } from "next";
 import { withApollo } from "next-apollo";
-import {
-  PaginatedComments,
-  PaginatedPosts,
-} from "../graphql/generated/graphql";
+import { PaginatedPosts } from "../graphql/generated/graphql";
 import { isServerSide } from "../utils/isServerSide";
 
 const client = (ctx: NextPageContext) =>
   new ApolloClient({
+    connectToDevTools: true,
     uri: "http://localhost:4000/graphql",
     credentials: "include",
     headers: {
@@ -27,48 +25,6 @@ const client = (ctx: NextPageContext) =>
                 return {
                   ...incoming,
                   posts: [...(existing?.posts || []), ...incoming.posts],
-                };
-              },
-            },
-            comments: {
-              keyArgs: [],
-              merge(
-                existingCommentsQuery:
-                  | (PaginatedComments & {
-                      result: { __ref: string }[];
-                    })
-                  | undefined,
-                incomingCommentsQuery: PaginatedComments & {
-                  result: { __ref: string }[];
-                }
-              ): PaginatedComments {
-                const topExistingCommentId = parseInt(
-                  existingCommentsQuery?.result[0]?.__ref.replace(
-                    /Comment:/,
-                    ""
-                  )
-                );
-                const topIncomingCommentId = parseInt(
-                  incomingCommentsQuery.result[0]?.__ref.replace(/Comment:/, "")
-                );
-                if (
-                  topIncomingCommentId > topExistingCommentId &&
-                  incomingCommentsQuery.result.length === 1
-                ) {
-                  return {
-                    ...incomingCommentsQuery,
-                    result: [
-                      ...incomingCommentsQuery.result,
-                      ...(existingCommentsQuery?.result || []),
-                    ],
-                  };
-                }
-                return {
-                  ...incomingCommentsQuery,
-                  result: [
-                    ...(existingCommentsQuery?.result || []),
-                    ...incomingCommentsQuery.result,
-                  ],
                 };
               },
             },

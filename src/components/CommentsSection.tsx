@@ -1,5 +1,5 @@
 import { Box, Button, CircularProgress } from "@material-ui/core";
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { Comment, useCommentsQuery } from "../graphql/generated/graphql";
 import useEvictQueryOnUnmount from "../utils/useEvictQueryOnUnmount";
@@ -9,6 +9,8 @@ import PostComment from "./PostComments";
 
 const StyledCardBody = styled.div`
   display: block;
+  max-width: 100%;
+  width: 100%;
   padding: 10px;
 `;
 
@@ -26,35 +28,57 @@ const StyledSubmitProgress = styled(CircularProgress)`
   margin-left: -12px;
 `;
 
-const CommentsSection: React.FC = () => {
+interface CommentsSectionProps {
+  parentPath?: string;
+  limit?: number;
+}
+
+const CommentsSection: React.FC<CommentsSectionProps> = ({
+  parentPath = "/",
+  limit = 10,
+}) => {
+  const [loadingComments, setLoadingComments] = useState(false);
   const { data: postData } = useGetPostFromRoute();
-  const {
-    data,
-    loading,
-    fetchMore,
-    variables: commentsQueryVariables,
-  } = useCommentsQuery({
+  const { data, fetchMore, updateQuery } = useCommentsQuery({
     variables: {
       postId: postData.post.id,
-      limit: 10,
-      parentPath: "/",
+      limit,
+      parentPath,
     },
   });
 
-  const comments = data?.comments?.result?.map((comment) => {
-    return <CommentComponent comment={comment as Comment} key={comment.id} />;
-  });
+  const comments = data?.comments?.result
+    ?.filter((comment) => comment.parentPath === parentPath)
+    .map((comment) => {
+      return <CommentComponent comment={comment as Comment} key={comment.id} />;
+    });
 
-  const loadMore = () => {
+  const loadMore = async () => {
+    setLoadingComments(true);
     const cursor =
       data.comments.result[data.comments.result.length - 1].id || null;
-    const limit = commentsQueryVariables?.limit;
-    fetchMore({
+    await fetchMore({
       variables: { limit, cursor: String(cursor) },
     });
+    updateQuery((incomingComments) => {
+      const existingComments = data;
+      return {
+        comments: {
+          ...incomingComments.comments,
+          result: [
+            ...existingComments.comments.result,
+            ...incomingComments.comments.result,
+          ],
+        },
+      };
+    });
+    setLoadingComments(false);
   };
 
-  useEvictQueryOnUnmount({ id: "ROOT_QUERY", fieldName: "comments" });
+  useEvictQueryOnUnmount(
+    { id: "ROOT_QUERY", fieldName: "comments" },
+    parentPath === "/"
+  );
 
   return (
     <StyledCardBody>
@@ -67,12 +91,12 @@ const CommentsSection: React.FC = () => {
           <Button
             fullWidth
             color="primary"
-            disabled={loading}
+            disabled={loadingComments}
             onClick={() => loadMore()}
           >
             Load more...
           </Button>
-          {loading && <StyledSubmitProgress size={24} />}
+          {loadingComments && <StyledSubmitProgress size={24} />}
         </StyledWrapper>
       )}
     </StyledCardBody>

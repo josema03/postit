@@ -10,9 +10,6 @@ query Comments(
     limit: $limit
     postId: $postId
   ) {
-    result {
-      ...CommentSnippet
-    }
-    hasMore
+    ...PaginatedCommentsSnippet
   }
 }

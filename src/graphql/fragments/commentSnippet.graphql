@@ -1,6 +1,7 @@
 fragment CommentSnippet on Comment {
   id
   text
+  hasResponse
   parentPath
   createdAt
   updatedAt

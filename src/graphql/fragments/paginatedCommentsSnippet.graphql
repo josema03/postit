@@ -1,0 +1,7 @@
+fragment PaginatedCommentsSnippet on PaginatedComments {
+  id
+  result {
+    ...CommentSnippet
+  }
+  hasMore
+}
