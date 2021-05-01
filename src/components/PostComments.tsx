@@ -3,13 +3,13 @@ import { useFormik } from "formik";
 import React from "react";
 import styled from "styled-components";
 import * as yup from "yup";
-import useGetPostFromRoute from "../utils/useGetPostFromRoute";
 import {
-  CommentsDocument,
-  CommentsQuery,
   CommentsQueryVariables,
+  PaginatedComments,
+  PaginatedCommentsSnippetFragmentDoc,
   usePostCommentMutation,
 } from "../graphql/generated/graphql";
+import useGetPostFromRoute from "../utils/useGetPostFromRoute";
 
 const StyledForm = styled.form`
   display: flex;
@@ -42,24 +42,29 @@ const StyledSubmitProgress = styled(CircularProgress)`
 const validationSchema = yup.object({
   comment: yup.string(),
 });
+interface PostCommentProps {
+  parentPath: string;
+}
 
-const PostComment: React.FC = () => {
+const PostComment: React.FC<PostCommentProps> = ({ parentPath = "/" }) => {
   const { data } = useGetPostFromRoute();
   const [postComment] = usePostCommentMutation({
-    update: (cache, { data }) => {
-      const previousQuery = cache.readQuery<
-        CommentsQuery,
+    update: (cache, { data: postedCommentData }) => {
+      const previousQuery = cache.readFragment<
+        PaginatedComments,
         CommentsQueryVariables
       >({
-        query: CommentsDocument,
+        id: `PaginatedComments:${parentPath}`,
+        fragment: PaginatedCommentsSnippetFragmentDoc,
+        fragmentName: "PaginatedCommentsSnippet",
       });
-      cache.writeQuery({
-        query: CommentsDocument,
+      cache.writeFragment({
+        id: `PaginatedComments:${parentPath}`,
+        fragment: PaginatedCommentsSnippetFragmentDoc,
+        fragmentName: "PaginatedCommentsSnippet",
         data: {
-          comments: {
-            ...previousQuery.comments,
-            result: [data.postComment],
-          },
+          ...previousQuery,
+          result: [postedCommentData.postComment, ...previousQuery.result],
         },
       });
     },
@@ -74,7 +79,7 @@ const PostComment: React.FC = () => {
       await postComment({
         variables: {
           postId: data.post.id,
-          parentPath: "/",
+          parentPath,
           text: values.comment,
         },
       });

@@ -82,7 +82,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
 
   return (
     <StyledCardBody>
-      <PostComment />
+      <PostComment parentPath={parentPath} />
       <Box display="flex" flexDirection="column">
         {comments}
       </Box>
