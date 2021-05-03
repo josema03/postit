@@ -1,11 +1,10 @@
 import { Box, Button, CircularProgress } from "@material-ui/core";
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import { Comment, useCommentsQuery } from "../graphql/generated/graphql";
 import useEvictQueryOnUnmount from "../utils/useEvictQueryOnUnmount";
 import useGetPostFromRoute from "../utils/useGetPostFromRoute";
 import CommentComponent from "./CommentComponent";
-import PostComment from "./PostComments";
 
 const StyledCardBody = styled.div`
   display: block;
@@ -37,14 +36,15 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
   parentPath = "/",
   limit = 10,
 }) => {
-  const [loadingComments, setLoadingComments] = useState(false);
+  // const [loadingComments, setLoadingComments] = useState(false);
   const { data: postData } = useGetPostFromRoute();
-  const { data, fetchMore, updateQuery } = useCommentsQuery({
+  const { data, loading, fetchMore } = useCommentsQuery({
     variables: {
       postId: postData.post.id,
       limit,
       parentPath,
     },
+    notifyOnNetworkStatusChange: true,
   });
 
   const comments = data?.comments?.result
@@ -54,25 +54,11 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
     });
 
   const loadMore = async () => {
-    setLoadingComments(true);
     const cursor =
       data.comments.result[data.comments.result.length - 1].id || null;
     await fetchMore({
       variables: { limit, cursor: String(cursor) },
     });
-    updateQuery((incomingComments) => {
-      const existingComments = data;
-      return {
-        comments: {
-          ...incomingComments.comments,
-          result: [
-            ...existingComments.comments.result,
-            ...incomingComments.comments.result,
-          ],
-        },
-      };
-    });
-    setLoadingComments(false);
   };
 
   useEvictQueryOnUnmount(
@@ -82,7 +68,6 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
 
   return (
     <StyledCardBody>
-      <PostComment parentPath={parentPath} />
       <Box display="flex" flexDirection="column">
         {comments}
       </Box>
@@ -91,12 +76,14 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
           <Button
             fullWidth
             color="primary"
-            disabled={loadingComments}
+            disabled={loading}
             onClick={() => loadMore()}
           >
-            Load more...
+            {parentPath === "/"
+              ? "Load more comments..."
+              : "Load more responses..."}
           </Button>
-          {loadingComments && <StyledSubmitProgress size={24} />}
+          {loading && <StyledSubmitProgress size={24} />}
         </StyledWrapper>
       )}
     </StyledCardBody>

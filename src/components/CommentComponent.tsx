@@ -1,8 +1,10 @@
-import { Box, Typography } from "@material-ui/core";
-import React from "react";
+import { Box, IconButton, Typography } from "@material-ui/core";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { Comment } from "../graphql/generated/graphql";
 import CommentsSection from "./CommentsSection";
+import ReplyIcon from "@material-ui/icons/Reply";
+import PostComment from "./PostComments";
 
 const StyledComment = styled.div`
   display: flex;
@@ -14,7 +16,13 @@ const StyledComment = styled.div`
 
 const StyledResponsesWrapper = styled.div`
   margin-left: auto;
-  width: 100%;
+  width: calc(100% - 10px);
+  border-left: groove 1px;
+`;
+
+const StyledPostReplyWrapper = styled.div`
+  margin-left: auto;
+  width: calc(100% - 10px);
 `;
 
 interface CommentProps {
@@ -22,6 +30,23 @@ interface CommentProps {
 }
 
 const CommentComponent: React.FC<CommentProps> = ({ comment }) => {
+  const [isReplying, setIsReplying] = useState(false);
+
+  const replyToComment = () => {
+    setIsReplying(true);
+  };
+
+  const postReply = isReplying ? (
+    <StyledPostReplyWrapper>
+      <PostComment
+        parentPath={`/${comment.id}/`}
+        parentComment={comment}
+        isReplying={isReplying}
+        setIsReplying={setIsReplying}
+      />
+    </StyledPostReplyWrapper>
+  ) : null;
+
   const commentResponses = comment.hasResponse ? (
     <StyledResponsesWrapper>
       <CommentsSection
@@ -46,8 +71,14 @@ const CommentComponent: React.FC<CommentProps> = ({ comment }) => {
         <Box>
           <Typography variant="body2">{comment.text}</Typography>
         </Box>
-        {commentResponses}
+        <Box>
+          <IconButton onClick={() => replyToComment()}>
+            <ReplyIcon />
+          </IconButton>
+        </Box>
       </StyledComment>
+      {postReply}
+      {commentResponses}
     </>
   );
 };

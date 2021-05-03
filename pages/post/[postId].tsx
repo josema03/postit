@@ -9,6 +9,7 @@ import React from "react";
 import styled from "styled-components";
 import CommentsSection from "../../src/components/CommentsSection";
 import Layout from "../../src/components/Layout";
+import PostComment from "../../src/components/PostComments";
 import PostToolbar from "../../src/components/PostToolbar";
 import withApollo from "../../src/components/withApollo";
 import useGetPostFromRoute from "../../src/utils/useGetPostFromRoute";
@@ -79,6 +80,7 @@ const Post: React.FC = () => {
             <Typography variant="body1">{data.post.text}</Typography>
           </StyledCardBody>
           <Divider variant="middle" />
+          <PostComment parentPath="/" />
           <CommentsSection />
         </StyledCardContent>
       </StyledCard>

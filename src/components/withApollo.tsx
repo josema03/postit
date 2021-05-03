@@ -30,6 +30,25 @@ const client = (ctx: NextPageContext) =>
             },
           },
         },
+        PaginatedComments: {
+          fields: {
+            hasMore: {
+              keyArgs: [],
+              merge(_existing = false, incoming) {
+                return incoming;
+              },
+            },
+            result: {
+              keyArgs: [],
+              merge(existing = [], incoming) {
+                if (incoming.length > existing?.length) {
+                  return incoming;
+                }
+                return [...existing, ...incoming];
+              },
+            },
+          },
+        },
       },
     }),
   });

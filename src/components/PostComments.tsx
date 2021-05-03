@@ -4,6 +4,10 @@ import React from "react";
 import styled from "styled-components";
 import * as yup from "yup";
 import {
+  Comment,
+  CommentsDocument,
+  CommentSnippetFragmentDoc,
+  CommentsQuery,
   CommentsQueryVariables,
   PaginatedComments,
   PaginatedCommentsSnippetFragmentDoc,
@@ -11,8 +15,10 @@ import {
 } from "../graphql/generated/graphql";
 import useGetPostFromRoute from "../utils/useGetPostFromRoute";
 
-const StyledForm = styled.form`
+const StyledForm = styled.form<{ parentPath: string }>`
   display: flex;
+  padding: ${(props) =>
+    props.parentPath === "/" ? "20px 20px 0px 20px" : "10px"};
   flex-direction: column;
   width: 100%;
 `;
@@ -44,9 +50,17 @@ const validationSchema = yup.object({
 });
 interface PostCommentProps {
   parentPath: string;
+  parentComment?: Comment;
+  isReplying?: boolean;
+  setIsReplying?: (newState: boolean) => void;
 }
 
-const PostComment: React.FC<PostCommentProps> = ({ parentPath = "/" }) => {
+const PostComment: React.FC<PostCommentProps> = ({
+  parentPath = "/",
+  parentComment,
+  isReplying = true,
+  setIsReplying,
+}) => {
   const { data } = useGetPostFromRoute();
   const [postComment] = usePostCommentMutation({
     update: (cache, { data: postedCommentData }) => {
@@ -58,15 +72,29 @@ const PostComment: React.FC<PostCommentProps> = ({ parentPath = "/" }) => {
         fragment: PaginatedCommentsSnippetFragmentDoc,
         fragmentName: "PaginatedCommentsSnippet",
       });
-      cache.writeFragment({
-        id: `PaginatedComments:${parentPath}`,
-        fragment: PaginatedCommentsSnippetFragmentDoc,
-        fragmentName: "PaginatedCommentsSnippet",
-        data: {
-          ...previousQuery,
-          result: [postedCommentData.postComment, ...previousQuery.result],
-        },
-      });
+      if (previousQuery) {
+        cache.writeQuery<CommentsQuery, CommentsQueryVariables>({
+          query: CommentsDocument,
+          data: {
+            comments: {
+              __typename: "PaginatedComments",
+              id: parentPath,
+              hasMore: previousQuery.hasMore,
+              result: [postedCommentData.postComment, ...previousQuery.result],
+            },
+          },
+        });
+      }
+      if (parentPath !== "/" && parentComment?.hasResponse === false) {
+        cache.writeFragment({
+          id: `Comment:${parentComment.id}`,
+          fragment: CommentSnippetFragmentDoc,
+          data: {
+            ...parentComment,
+            hasResponse: true,
+          },
+        });
+      }
     },
   });
 
@@ -87,8 +115,46 @@ const PostComment: React.FC<PostCommentProps> = ({ parentPath = "/" }) => {
     },
   });
 
+  const cancelReply = () => {
+    formik.resetForm();
+    if (isReplying !== undefined && setIsReplying) {
+      setIsReplying(false);
+    }
+  };
+
+  const formButtons = [];
+
+  if (formik.touched.comment || isReplying) {
+    const buttonsToPush = (
+      <Box display="flex" justifyContent="flex-end">
+        <StyledButtonWrapper>
+          <Button onClick={() => cancelReply()} fullWidth>
+            Cancel
+          </Button>
+        </StyledButtonWrapper>
+        <StyledButtonWrapper>
+          <Button
+            fullWidth
+            color="primary"
+            variant="contained"
+            type="submit"
+            disabled={formik.isSubmitting || !formik.values.comment}
+          >
+            {parentPath === "/" ? "Comment" : "Reply"}
+          </Button>
+          {formik.isSubmitting && <StyledSubmitProgress size={24} />}
+        </StyledButtonWrapper>
+      </Box>
+    );
+    formButtons.push(buttonsToPush);
+  }
+
+  if (!isReplying) {
+    return null;
+  }
+
   return (
-    <StyledForm onSubmit={formik.handleSubmit}>
+    <StyledForm onSubmit={formik.handleSubmit} parentPath={parentPath}>
       <StyledTextField
         id="comment"
         name="comment"
@@ -99,25 +165,7 @@ const PostComment: React.FC<PostCommentProps> = ({ parentPath = "/" }) => {
         error={formik.touched.comment && Boolean(formik.errors.comment)}
         helperText={formik.touched.comment && formik.errors.comment}
       />
-      {formik.touched.comment && (
-        <Box display="flex" justifyContent="flex-end">
-          <StyledButtonWrapper>
-            <Button fullWidth>Cancel</Button>
-          </StyledButtonWrapper>
-          <StyledButtonWrapper>
-            <Button
-              fullWidth
-              color="primary"
-              variant="contained"
-              type="submit"
-              disabled={formik.isSubmitting || !formik.values.comment}
-            >
-              Comment
-            </Button>
-            {formik.isSubmitting && <StyledSubmitProgress size={24} />}
-          </StyledButtonWrapper>
-        </Box>
-      )}
+      {formButtons}
     </StyledForm>
   );
 };
