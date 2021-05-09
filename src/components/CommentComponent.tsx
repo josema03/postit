@@ -32,14 +32,10 @@ interface CommentProps {
 const CommentComponent: React.FC<CommentProps> = ({ comment }) => {
   const [isReplying, setIsReplying] = useState(false);
 
-  const replyToComment = () => {
-    setIsReplying(true);
-  };
-
   const postReply = isReplying ? (
     <StyledPostReplyWrapper>
       <PostComment
-        parentPath={`/${comment.id}/`}
+        parentPath={`${comment.parentPath}${comment.id}/`}
         parentComment={comment}
         isReplying={isReplying}
         setIsReplying={setIsReplying}
@@ -50,7 +46,7 @@ const CommentComponent: React.FC<CommentProps> = ({ comment }) => {
   const commentResponses = comment.hasResponse ? (
     <StyledResponsesWrapper>
       <CommentsSection
-        parentPath={`/${comment.id}/`}
+        parentPath={`${comment.parentPath}${comment.id}/`}
         limit={5}
         key={`responses-${comment.id}`}
       />
@@ -72,7 +68,7 @@ const CommentComponent: React.FC<CommentProps> = ({ comment }) => {
           <Typography variant="body2">{comment.text}</Typography>
         </Box>
         <Box>
-          <IconButton onClick={() => replyToComment()}>
+          <IconButton onClick={() => setIsReplying(true)}>
             <ReplyIcon />
           </IconButton>
         </Box>

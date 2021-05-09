@@ -111,6 +111,9 @@ const PostComment: React.FC<PostCommentProps> = ({
           text: values.comment,
         },
       });
+      if (setIsReplying) {
+        setIsReplying(false);
+      }
       formik.resetForm();
     },
   });
@@ -126,7 +129,11 @@ const PostComment: React.FC<PostCommentProps> = ({
 
   if (formik.touched.comment || isReplying) {
     const buttonsToPush = (
-      <Box display="flex" justifyContent="flex-end">
+      <Box
+        display="flex"
+        justifyContent="flex-end"
+        key={`postComment-Button-${parentPath}`}
+      >
         <StyledButtonWrapper>
           <Button onClick={() => cancelReply()} fullWidth>
             Cancel
@@ -154,7 +161,11 @@ const PostComment: React.FC<PostCommentProps> = ({
   }
 
   return (
-    <StyledForm onSubmit={formik.handleSubmit} parentPath={parentPath}>
+    <StyledForm
+      onSubmit={formik.handleSubmit}
+      parentPath={parentPath}
+      key={`postComment-${parentPath}`}
+    >
       <StyledTextField
         id="comment"
         name="comment"
